@@ -41,21 +41,15 @@ public class TranslateFragment extends Fragment {
     private RecyclerView rv;
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager manager;
-    private List<String> list;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        list = new ArrayList<>();
+
         View view = inflater.inflate(R.layout.translate_fragment, container, false);
         input_field = (EditText) view.findViewById(R.id.inputfield);
         translate = (Button) view.findViewById(R.id.btn_tanslate);
         rv = (RecyclerView)view.findViewById(R.id.recycler_view);
-
-        manager = new LinearLayoutManager(getActivity());
-        rv.setLayoutManager(manager);
-        adapter = new LookupAdapter(getActivity().getApplication(),list);
-        rv.setAdapter(adapter);
 
         translate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,7 +58,6 @@ public class TranslateFragment extends Fragment {
                 Translate(text);
             }
         });
-
 
         return view;
     }
@@ -105,12 +98,11 @@ public class TranslateFragment extends Fragment {
             @Override
             public void onResponse(Call<LookupResponse> call, Response<LookupResponse> response) {
                 LookupResponse lookup_response = response.body();
-//                Log.d(Constants.TAG,"DEF :"+ lookup_response.getDef().size()+" ");
-//                Log.d(Constants.TAG,"DEF_TEXT 1:"+ lookup_response.getDef().get(0).getText()+" "+lookup_response.getDef().get(0).getPos());
-//                Log.d(Constants.TAG,"DEF_TEXT 2:"+ lookup_response.getDef().get(1).getText()+" "+lookup_response.getDef().get(1).getPos());
-                //list.add(RV_data_list(lookup_response));
-                list = RV_data_list(lookup_response);
-                adapter.notifyDataSetChanged();
+                
+                manager = new LinearLayoutManager(getActivity());
+                rv.setLayoutManager(manager);
+                adapter = new LookupAdapter(getActivity().getApplication(),RV_data_list(lookup_response));
+                rv.setAdapter(adapter);
 
             }
 
@@ -119,6 +111,7 @@ public class TranslateFragment extends Fragment {
                 Log.d(Constants.TAG, "lookup failure" + t.toString());
             }
         });
+
     }
 
     private int getDefSize(LookupResponse response){
@@ -148,7 +141,6 @@ public class TranslateFragment extends Fragment {
             for (int j=0;j<lists.get(i).size();j++)
             {
                 objs.add(lists.get(i).get(j));
-                Log.d(Constants.TAG,"tr_i :"+ objs.get(j).getText());
             }
         }
         return objs;
@@ -165,7 +157,7 @@ public class TranslateFragment extends Fragment {
         List<String> rv_rowBot_i = new ArrayList<>();
         List<String> pos_i = new ArrayList<>();
         List<String> gen_i = new ArrayList<>();
-        List<String> mean_i = new ArrayList<>();
+        List<String> mean_i= new ArrayList<>();
         List<String> syn_i = new ArrayList<>();
 
 
@@ -181,6 +173,7 @@ public class TranslateFragment extends Fragment {
 
 
         for (int i=0;i<tr_i.size();i++) {
+
             if(tr_i.get(i).getPos() != null) {
                 pos_i.add(tr_i.get(i).getPos());
             }
@@ -188,38 +181,47 @@ public class TranslateFragment extends Fragment {
                 pos_i.add("");
 
             }
-            Log.d(Constants.TAG,"pos_i :"+ pos_i.get(i).toString());
             if(tr_i.get(i).getGen() != null) {
                 gen_i.add(tr_i.get(i).getGen());
             }
             else {
                 gen_i.add("");
             }
-            Log.d(Constants.TAG,"gen_i :"+ gen_i.get(i).toString());
+
             if(tr_i.get(i).getMean()!= null) {
                 for (int j=0;j<tr_i.get(i).getMean().size();j++){
                     mean_i.add(tr_i.get(i).getMean().get(j).getText());
                 }
             }
             else {
+
                 mean_i.add("");
             }
-            Log.d(Constants.TAG,"mean_i :"+ mean_i.get(i).toString());
+
             if(tr_i.get(i).getSyn()!= null) {
+
                 for (int j=0;j<tr_i.get(i).getSyn().size();j++){
                     syn_i.add(tr_i.get(i).getSyn().get(j).getText());
                 }
             }
             else {
+
                 syn_i.add("");
             }
-            Log.d(Constants.TAG,"syn_i :"+ syn_i.get(i).toString());
-            rowTop += tr_i.get(i).getText()+" " + listToString(syn_i);
+            Log.d(Constants.TAG,"=====================================ITERATION :"+i+"==========================================================");
+
+            rowTop = tr_i.get(i).getText()+" " + listToString(syn_i);
             Log.d(Constants.TAG,"rowTop :"+ rowTop);
-            rowBot += listToString(mean_i);
+            rowBot = listToString(mean_i);
             Log.d(Constants.TAG,"rowBot :"+ rowBot);
+            Log.d(Constants.TAG,"===============================================================================================");
             rv_rowTop_i.add(rowTop);
             rv_rowBot_i.add(rowBot);
+            mean_i.clear();
+            syn_i.clear();
+        }
+        for(int i =0;i<rv_rowTop_i.size();i++){
+            Log.d(Constants.TAG,"LIST TOP ITEMS: "+ rv_rowBot_i.get(i).toString());
         }
         return rv_rowTop_i;
     }
