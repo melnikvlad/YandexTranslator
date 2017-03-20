@@ -3,14 +3,17 @@ package com.example.vlad.mytranslatorwithyandex_v101.Fragments;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LookupService;
@@ -35,6 +38,7 @@ import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.LookupAdapter;
 
 
 public class TranslateFragment extends Fragment {
+    private TextView trans,def,pos;
     private EditText input_field;
     private Button translate;
     private String text ="" ;
@@ -47,6 +51,9 @@ public class TranslateFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.translate_fragment, container, false);
+        trans = (TextView)view.findViewById(R.id.translate);
+        def = (TextView)view.findViewById(R.id.def);
+        pos = (TextView)view.findViewById(R.id.pos);
         input_field = (EditText) view.findViewById(R.id.inputfield);
         translate = (Button) view.findViewById(R.id.btn_tanslate);
         rv = (RecyclerView)view.findViewById(R.id.recycler_view);
@@ -55,37 +62,36 @@ public class TranslateFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 text = input_field.getText().toString();
-                Translate(text);
+                Translate(text);  // DO ALL STUFF
             }
         });
 
         return view;
     }
-
+//====================================================== MAIN TRANSLATE AND LOOKUP METHOD ==================================================================================
     private void Translate(String text) {
 
-        Retrofit retrofitTR = new Retrofit.Builder().baseUrl(Constants.BASE_URL)
+        Retrofit retrofitTR = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        Retrofit retrofitLK = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)
+        Retrofit retrofitLK = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)   // Lookup
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        TranslateService tr_service = retrofitTR.create(TranslateService.class);
-        LookupService lookup_service = retrofitLK.create(LookupService.class);
+        TranslateService tr_service = retrofitTR.create(TranslateService.class); // Translate sevice
+        LookupService lookup_service = retrofitLK.create(LookupService.class); //   Lookup sevice
 
         final Call<TranslaterResponse> CallToTranslate = tr_service.makeTranslateRequest(getTranslateParams());
         final Call<LookupResponse> CallToLookup = lookup_service.makeLookupRequest(getLookupParams());
 
-        CallToTranslate.enqueue(new Callback<TranslaterResponse>() {
+        CallToTranslate.enqueue(new Callback<TranslaterResponse>() {   // Translate call
             @Override
             public void onResponse(Call<TranslaterResponse> call, Response<TranslaterResponse> response) {
-                TranslaterResponse tr_response = response.body();
-                Log.d(Constants.TAG, "TRANSLATE :" +
-                        tr_response.getCode() + " " +
-                        tr_response.getLang() + " " +
-                        tr_response.getText().get(0));
+
+                TranslaterResponse translate_response = response.body(); // Translate response
+                // Lets cut square braces off in response and view normal text
+                trans.setText(translate_response.getText().toString().substring(1,translate_response.getText().toString().length()-1));
             }
 
             @Override
@@ -94,16 +100,26 @@ public class TranslateFragment extends Fragment {
             }
         });
 
-        CallToLookup.enqueue(new Callback<LookupResponse>() {
+        CallToLookup.enqueue(new Callback<LookupResponse>() { // Lookup call
             @Override
             public void onResponse(Call<LookupResponse> call, Response<LookupResponse> response) {
-                LookupResponse lookup_response = response.body();
-                
-                manager = new LinearLayoutManager(getActivity());
-                rv.setLayoutManager(manager);
-                adapter = new LookupAdapter(getActivity().getApplication(),RV_data_list(lookup_response));
-                rv.setAdapter(adapter);
 
+                LookupResponse lookup_response = response.body();  // Lookup response
+                def.setText(lookup_response.getDef().get(0).getText().toString());
+                pos.setText(lookup_response.getDef().get(0).getPos().toString());
+
+                manager = new LinearLayoutManager(getActivity());  // View in Recycler View
+                rv.setLayoutManager(manager);
+                adapter = new LookupAdapter(
+                        getActivity().getApplication(),
+                        RV_top_items_row(lookup_response),
+                        RV_bot_items_row(lookup_response)
+                        //________________________
+                        // Definition + Synonyms  |
+                        // Meaning                | <-- Single Recycler View Item
+                        //________________________|
+                );
+                rv.setAdapter(adapter);
             }
 
             @Override
@@ -113,12 +129,13 @@ public class TranslateFragment extends Fragment {
         });
 
     }
+//=========================================================================================================================================================
 
-    private int getDefSize(LookupResponse response){
+    private int getDefSize(LookupResponse response){ // How many Def[] arrays ?
         return response.getDef().size();
     }
 
-    private List<List<Tr>> getTrLists(LookupResponse response){
+    private List<List<Tr>> getTrLists(LookupResponse response){ // Get all Tr[] from every Def[] array
         List<List<Tr>> list = new ArrayList<>();
         for(int i=0;i<getDefSize(response);i++){
             list.add(response.getDef().get(i).getTr());
@@ -126,7 +143,7 @@ public class TranslateFragment extends Fragment {
         return list;
     }
 
-    private int getTrListsSize(List<List<Tr>> lists){
+    private int getTrListsSize(List<List<Tr>> lists){ // How many objects in every Tr[] array
         int size =0;
         for(int i=0;i<lists.size();i++){
             size+= lists.get(i).size();
@@ -134,7 +151,7 @@ public class TranslateFragment extends Fragment {
         return size;
     }
 
-    private List<Tr> getTrListsObjects(List<List<Tr>> lists){
+    private List<Tr> getTrListsObjects(List<List<Tr>> lists){ // Get all Tr{} objects from every Tr[] array
         List<Tr> objs = new ArrayList<>();
         for(int i=0;i<lists.size();i++)
         {
@@ -146,20 +163,12 @@ public class TranslateFragment extends Fragment {
         return objs;
     }
 
-    private List<String> RV_data_list(LookupResponse response){
-        String rowTop = "";
-        String rowBot = "";
+    private List<Tr> getTranslates(LookupResponse response){  // Get list of all translates
         int defSize = 0;
         int trSize = 0;
         List<List<Tr>> trList = new ArrayList<>();
         List<Tr> tr_i = new ArrayList<>();
         List<String> rv_rowTop_i = new ArrayList<>();
-        List<String> rv_rowBot_i = new ArrayList<>();
-        List<String> pos_i = new ArrayList<>();
-        List<String> gen_i = new ArrayList<>();
-        List<String> mean_i= new ArrayList<>();
-        List<String> syn_i = new ArrayList<>();
-
 
         defSize = getDefSize(response);
         Log.d(Constants.TAG,"defSize :"+ defSize);
@@ -169,24 +178,91 @@ public class TranslateFragment extends Fragment {
         Log.d(Constants.TAG,"trSize :"+trSize);
         tr_i = getTrListsObjects(trList);
         Log.d(Constants.TAG,"tr_i :"+tr_i);
+        return tr_i;
+
+    }
+
+    private String listToString(List<String> list){  // Turn list items to single textline
+        String text="";
+        for(int i=0;i<list.size();i++){
+            if(i == list.size()-1){
+                text+=list.get(i).toString();
+            }
+            else
+            {
+                text+=list.get(i).toString()+", ";
+            }
+
+        }
+        return text;
+    }
 
 
+    private List<String> RV_top_items_row(LookupResponse response){// Inflate cardview top row for Recycler View adapter
 
-        for (int i=0;i<tr_i.size();i++) {
+        List<Tr> tr_i;
+        List<String> rv_rowTop_i = new ArrayList<>();
+        List<String> pos_i = new ArrayList<>();
+        List<String> gen_i = new ArrayList<>();
+        List<String> syn_i = new ArrayList<>();
+        String rowTop="";
 
-            if(tr_i.get(i).getPos() != null) {
+        tr_i = getTranslates(response); // All translates
+
+        for (int i=0;i<tr_i.size();i++) { // Loop through all translates
+
+            if(tr_i.get(i).getPos() != null) { // if pos field exists --> add it to  pos list
                 pos_i.add(tr_i.get(i).getPos());
             }
             else {
-                pos_i.add("");
+                pos_i.add(""); // else make it empty
 
             }
-            if(tr_i.get(i).getGen() != null) {
+            if(tr_i.get(i).getGen() != null) {  // if gen field exists --> add it to gen list
                 gen_i.add(tr_i.get(i).getGen());
             }
             else {
-                gen_i.add("");
+                gen_i.add("");  // else make it empty
             }
+
+            if(tr_i.get(i).getSyn()!= null) { // if syn array exists --> add it to syn list
+
+                for (int j=0;j<tr_i.get(i).getSyn().size();j++){
+                    syn_i.add(tr_i.get(i).getSyn().get(j).getText());
+                }
+            }
+            else {
+
+                syn_i.add("");  // else make it empty
+            }
+            Log.d(Constants.TAG,"=====================================ITERATION :"+i+"==========================================================");
+            String listtoString = listToString(syn_i);
+            if(!listtoString.isEmpty()){        // Format string
+                rowTop = tr_i.get(i).getText()+", " + listtoString;
+            }
+            else
+            {
+                rowTop = tr_i.get(i).getText();
+            }
+
+            Log.d(Constants.TAG,"rowTop :"+ rowTop);
+            rv_rowTop_i.add(rowTop);// top row would be like : Translate + Synonyms
+            syn_i.clear();
+        }
+
+        return rv_rowTop_i;
+    }
+
+    private List<String> RV_bot_items_row(LookupResponse response){ // Inflate cardview bottom row for Recycler View adapter
+        String rowBot = "";
+        List<Tr> tr_i;
+        List<String> rv_rowBot_i = new ArrayList<>();
+        List<String> mean_i= new ArrayList<>();
+
+
+        tr_i = getTranslates(response); // All translates
+
+        for (int i=0;i<tr_i.size();i++) { // if mean array exists --> add it to mean list
 
             if(tr_i.get(i).getMean()!= null) {
                 for (int j=0;j<tr_i.get(i).getMean().size();j++){
@@ -195,46 +271,27 @@ public class TranslateFragment extends Fragment {
             }
             else {
 
-                mean_i.add("");
+                mean_i.add(""); // else make it empty
             }
 
-            if(tr_i.get(i).getSyn()!= null) {
-
-                for (int j=0;j<tr_i.get(i).getSyn().size();j++){
-                    syn_i.add(tr_i.get(i).getSyn().get(j).getText());
-                }
-            }
-            else {
-
-                syn_i.add("");
-            }
             Log.d(Constants.TAG,"=====================================ITERATION :"+i+"==========================================================");
+            String listtoString = listToString(mean_i);
+            if(!listtoString.isEmpty()) // Format string
+            {
+                rowBot = "("+listToString(mean_i)+")";
+            }
+            else{
+                rowBot="";
+            }
 
-            rowTop = tr_i.get(i).getText()+" " + listToString(syn_i);
-            Log.d(Constants.TAG,"rowTop :"+ rowTop);
-            rowBot = listToString(mean_i);
             Log.d(Constants.TAG,"rowBot :"+ rowBot);
-            Log.d(Constants.TAG,"===============================================================================================");
-            rv_rowTop_i.add(rowTop);
-            rv_rowBot_i.add(rowBot);
+            rv_rowBot_i.add(rowBot); // bottom row would be like : Means
             mean_i.clear();
-            syn_i.clear();
         }
-        for(int i =0;i<rv_rowTop_i.size();i++){
-            Log.d(Constants.TAG,"LIST TOP ITEMS: "+ rv_rowBot_i.get(i).toString());
-        }
-        return rv_rowTop_i;
+        return rv_rowBot_i;
     }
 
-    private String listToString(List<String> list){
-        String text="";
-        for(int i=0;i<list.size();i++){
-            text+=list.get(i).toString()+" ";
-        }
-        return text;
-    }
-
-    private Map<String,String> getTranslateParams() {
+    private Map<String,String> getTranslateParams() { // Params for Translate retrofit request
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_TRANSLATE);
         params.put("lang", Constants.EN_RU);
@@ -242,7 +299,7 @@ public class TranslateFragment extends Fragment {
         return params;
     }
 
-    private Map<String,String> getLookupParams() {
+    private Map<String,String> getLookupParams() {  // Params for Lookup retrofit request
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_LOOKUP);
         params.put("lang", Constants.EN_RU);

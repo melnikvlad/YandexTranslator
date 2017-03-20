@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MyTranslatorWithYandex_v1.01</string>
+    <string name="title_activity_main">Main</string>
+    <string name="action_settings">Settings</string>
 </resources>
