@@ -5,7 +5,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.TranslateFragment;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.ViewPagerFragment;
 
 public class MainActivity extends FragmentActivity
 {
@@ -17,7 +17,7 @@ public class MainActivity extends FragmentActivity
     }
 
     private void initView(){
-        Fragment fragment = new TranslateFragment();
+        Fragment fragment = new ViewPagerFragment();
         android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_frame,fragment);
         ft.commit();

@@ -45,7 +45,12 @@ public class LookupAdapter extends RecyclerView.Adapter<LookupAdapter.ViewHolder
     public void onBindViewHolder(ViewHolder holder, int position) {
 
         holder.top.setText(mTopData.get(position).toString());
-        holder.bot.setText(mBotData.get(position).toString());
+        if(mBotData.get(position).toString().equals("")) { // make cardview singleline, if there are no data for Mean( bot row ) in JSON response
+            holder.bot.setVisibility(View.GONE);
+        }
+        else {
+            holder.bot.setText(mBotData.get(position).toString());
+        }
         holder.num.setText(""+(position+1));
 
     }

@@ -1,7 +1,6 @@
 package com.example.vlad.mytranslatorwithyandex_v101.Interfaces;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.AllLanguagesResponse;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Lookup.LookupResponse;
 
 import java.util.Map;
 

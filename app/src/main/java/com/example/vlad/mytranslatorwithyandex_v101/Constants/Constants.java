@@ -9,4 +9,5 @@ public class Constants {
     public static final String UI = "en";
     public static final String EN_RU = "en-ru";
     public static final String TAG = "TAG";
+    public static final int TAB_COUNT = 3;
 }
