@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
+import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.AllLanguagesResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.Languages;
@@ -43,7 +44,7 @@ public class SettingsFragment extends Fragment {
     private RecyclerView rv;
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager manager;
-    List<String> keys;
+    private LanguagesSQLite db;
 
     @Nullable
     @Override
@@ -52,6 +53,7 @@ public class SettingsFragment extends Fragment {
         rv = (RecyclerView)view.findViewById(R.id.recycler_view_setings);
         searchView = (SearchView)view.findViewById(R.id.serchview_settings);
         manager = new LinearLayoutManager(getActivity());
+        db = new LanguagesSQLite(getActivity().getApplicationContext());
 
         getLanguages();
 
@@ -59,38 +61,46 @@ public class SettingsFragment extends Fragment {
     }
 
     private void getLanguages() {
-       keys = new ArrayList<>();
-        Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+       if(db.getLanguagesCount()== 0){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
+            Log.d(Constants.TAG,"DB IS EMPTY ---> LOAD FROM SERVER");
+           Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
+                   .addConverterFactory(GsonConverterFactory.create())
+                   .build();
 
-        AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
+           AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
 
-        final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
+           final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
 
-        CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
-            @Override
-            public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
-                AllLanguagesResponse languges_response = response.body();
+           CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
+               @Override
+               public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
+                   AllLanguagesResponse languges_response = response.body();
 
-               Languages languages = new Languages(getKeys(languges_response),getValues(languges_response));
+                   Languages languages = new Languages(getKeys(languges_response),getValues(languges_response));
+                   db.insertData(languages);
 
-                rv.setLayoutManager(manager); // View in Recycler View
-                adapter = new getLangsAdapter(
-                        getActivity().getApplication(),languages.getValues());
+                   rv.setLayoutManager(manager); // View in Recycler View
+                   adapter = new getLangsAdapter(
+                           getActivity().getApplication(),db.getAllData().getValues());
 
-                rv.setAdapter(adapter);
-            }
-            @Override
-            public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {
+                   rv.setAdapter(adapter);
+               }
+               @Override
+               public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
+           });
+       }
+       else { // if LanguagesSQLite DB is already exists and got all info --> view it in RV immediately
+           Log.d(Constants.TAG,"DB IS NOT EMPTY ---> VIEW IN RV");
+           rv.setLayoutManager(manager); // View in Recycler View
+           adapter = new getLangsAdapter(
+                   getActivity().getApplication(),db.getAllData().getValues());
 
-            }
-        });
+           rv.setAdapter(adapter);
+       }
+
     }
 
-    private String getKeybyValueID(List<String> keys,int value_id){
-        return keys.get(value_id).toString();
-    }
+
         private List<String> getKeys(AllLanguagesResponse response){
             List<String> keys_list = new ArrayList<>();
             Gson gson = new GsonBuilder().create();
