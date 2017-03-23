@@ -42,7 +42,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class SettingsFragment extends Fragment {
     private SearchView searchView;
     private RecyclerView rv;
-    private RecyclerView.Adapter adapter;
+    private getLangsAdapter adapter;
     private RecyclerView.LayoutManager manager;
     private LanguagesSQLite db;
 
@@ -56,6 +56,20 @@ public class SettingsFragment extends Fragment {
         db = new LanguagesSQLite(getActivity().getApplicationContext());
 
         getLanguages();
+
+        setupSearchView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.filter(newText);
+                return true;
+            }
+        });
 
         return view;
     }
@@ -98,6 +112,12 @@ public class SettingsFragment extends Fragment {
            rv.setAdapter(adapter);
        }
 
+    }
+
+    private void setupSearchView() {
+        searchView.setIconifiedByDefault(false);
+        searchView.setSubmitButtonEnabled(true);
+        searchView.setQueryHint("Search Here");
     }
 
 
