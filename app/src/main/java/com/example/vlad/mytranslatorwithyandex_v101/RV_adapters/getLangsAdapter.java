@@ -1,14 +1,19 @@
 package com.example.vlad.mytranslatorwithyandex_v101.RV_adapters;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Empty;
+
+import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.DefaultLanguageFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 
@@ -20,25 +25,14 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
     private List<String> langData;
     private List<String> filterList;
 
-    public class LanguagesViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class LanguagesViewHolder extends RecyclerView.ViewHolder {
         private TextView lang;
-        private Context context;
-
+        private CardView cardView;
 
         public LanguagesViewHolder(View view) {
             super(view);
-            context = view.getContext();
             lang = (TextView) view.findViewById(R.id.lang);
-            view.setOnClickListener(this);
-
-        }
-
-        @Override
-        public void onClick(View view) {
-            Empty empty = new Empty();
-            FragmentManager fragmentManager = ((MainActivity)context).getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.fragment_frame,empty).commit();
-            fragmentManager.beginTransaction().addToBackStack(null);
+            cardView = (CardView) view.findViewById(R.id.card_view);
         }
     }
 
@@ -60,8 +54,19 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
     }
 
     @Override
-    public void onBindViewHolder(getLangsAdapter.LanguagesViewHolder holder, int position) {
+    public void onBindViewHolder(final getLangsAdapter.LanguagesViewHolder holder, int position) {
         holder.lang.setText(filterList.get(position));
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Context applicationContext = MainActivity.getContextOfApplication();
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString(Constants.DEFAULT_LANGUAGE,holder.lang.getText().toString());
+                editor.apply();
+                replaceFragments();
+            }
+        });
     }
 
     @Override
@@ -88,4 +93,11 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                 }
         notifyDataSetChanged();
     }
+    private  void replaceFragments(){
+        DefaultLanguageFragment defaultLanguageFragment = new DefaultLanguageFragment();
+        FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.defaultlang_fragment_frame,defaultLanguageFragment).commit();
+        fragmentManager.beginTransaction().addToBackStack(null);
+    }
 }
+

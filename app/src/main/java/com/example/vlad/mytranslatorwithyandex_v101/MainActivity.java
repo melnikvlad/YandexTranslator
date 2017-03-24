@@ -9,14 +9,18 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.ViewPagerFragment;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends FragmentActivity
 {
+    public static Context contextOfApplication;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        contextOfApplication = getApplicationContext();
         initView();
+    }
+    public static Context getContextOfApplication(){
+        return contextOfApplication;
     }
     private void initView(){
         Fragment fragment = new ViewPagerFragment();

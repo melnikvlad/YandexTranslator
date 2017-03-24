@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.DefaultLanguageFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.FavouriteFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.SettingsFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.TranslateFragment;
@@ -58,8 +59,8 @@ public class ViewPagerFragment extends Fragment {
                    FavouriteFragment favouriteFragment = new FavouriteFragment();
                     return favouriteFragment;
                 case 2:
-                   SettingsFragment settingsFragment = new SettingsFragment();
-                    return settingsFragment;
+                   DefaultLanguageFragment defaultLanguageFragment = new DefaultLanguageFragment();
+                    return defaultLanguageFragment;
 
                 default:
                     translateFragment = new TranslateFragment();
