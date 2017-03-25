@@ -26,6 +26,7 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         super(context, DB_NAME, null, DB_VERSION);
     }
 
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         String query = "CREATE TABLE "+TABLE_NAME+
@@ -76,6 +77,19 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         }
         Languages languages = new Languages(keyList,valueList);
         return languages;
+    }
+    public String getKeyByValue(String value) {
+        String key ="";
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE VALUE=?", new String[]{value + ""});
+
+        if (cursor.moveToFirst()) {
+            do {
+                key = cursor.getString(1);
+            } while (cursor.moveToNext());
+        }
+        Log.d(Constants.TAG,"UI :"+ key);
+        return key;
     }
 
     public int getLanguagesCount() {

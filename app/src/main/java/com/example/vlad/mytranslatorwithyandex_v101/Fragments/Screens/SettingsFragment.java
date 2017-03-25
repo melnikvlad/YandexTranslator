@@ -50,6 +50,8 @@ public class SettingsFragment extends Fragment {
     private getLangsAdapter adapter;
     private RecyclerView.LayoutManager manager;
     private LanguagesSQLite db;
+    private SharedPreferences sharedPreferences;
+    private Context applicationContext;
 
 
     @Nullable
@@ -60,7 +62,6 @@ public class SettingsFragment extends Fragment {
         searchView = (SearchView)view.findViewById(R.id.serchview_settings);
         manager = new LinearLayoutManager(getActivity());
         db = new LanguagesSQLite(getActivity().getApplicationContext());
-
 
         getLanguages();
 
@@ -82,8 +83,11 @@ public class SettingsFragment extends Fragment {
     }
 
     private void getLanguages() {
-       if(db.getLanguagesCount()== 0){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
-            Log.d(Constants.TAG,"DB IS EMPTY ---> LOAD FROM SERVER");
+        applicationContext = MainActivity.getContextOfApplication();
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+        final SharedPreferences.Editor editor = sharedPreferences.edit();
+       if((db.getLanguagesCount()== 0)||(sharedPreferences.getInt(Constants.UI,-1) == 1)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
+
            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                    .addConverterFactory(GsonConverterFactory.create())
                    .build();
@@ -98,7 +102,10 @@ public class SettingsFragment extends Fragment {
                    AllLanguagesResponse languges_response = response.body();
 
                    Languages languages = new Languages(getKeys(languges_response),getValues(languges_response));
+                   db.deleteAll();
                    db.insertData(languages);
+                   editor.putInt(Constants.UI,0);
+                   editor.apply();
 
                    rv.setLayoutManager(manager); // View in Recycler View
                    adapter = new getLangsAdapter(
@@ -111,7 +118,7 @@ public class SettingsFragment extends Fragment {
            });
        }
        else { // if LanguagesSQLite DB is already exists and got all info --> view it in RV immediately
-           Log.d(Constants.TAG,"DB IS NOT EMPTY ---> VIEW IN RV");
+
            rv.setLayoutManager(manager); // View in Recycler View
            adapter = new getLangsAdapter(
                    getActivity(),db.getAllData().getValues());
@@ -125,7 +132,6 @@ public class SettingsFragment extends Fragment {
         searchView.setSubmitButtonEnabled(true);
         searchView.setQueryHint("Search Here");
     }
-
 
         private List<String> getKeys(AllLanguagesResponse response){
             List<String> keys_list = new ArrayList<>();
@@ -165,9 +171,16 @@ public class SettingsFragment extends Fragment {
         }
 
         private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
+            String ui ="";
+            LanguagesSQLite db = new LanguagesSQLite(getActivity().getApplicationContext());
+            if(ui.isEmpty()){
+                ui = "ru";
+            }
+            ui = db.getKeyByValue(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,""));
+
             Map<String, String> params = new HashMap<>();
             params.put("key", Constants.API_KEY_TRANSLATE);
-            params.put("ui", Constants.UI);
+            params.put("ui", ui);
             return params;
         }
     }

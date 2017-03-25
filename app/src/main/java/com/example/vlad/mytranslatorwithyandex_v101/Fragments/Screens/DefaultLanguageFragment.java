@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +43,12 @@ public class DefaultLanguageFragment extends Fragment {
     }
 
     private void goToSettingsFragment(){
+        Context applicationContext = MainActivity.getContextOfApplication();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(Constants.BTN_CLICKED,3);
+        editor.apply();
+
         SettingsFragment fragment = new SettingsFragment();
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.defaultlang_fragment_frame,fragment);

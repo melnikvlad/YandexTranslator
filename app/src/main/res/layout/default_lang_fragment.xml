@@ -17,17 +17,24 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="По умолчанию: " />
+                    android:layout_marginLeft="5dp"
+                    android:text="Язык интерфейса пользователя, на котором будут отображаться названия частей речи в словарной статье."
+                    android:textAlignment="textStart"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/selected_lang"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="@android:color/holo_blue_dark"
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <Button
@@ -35,6 +42,37 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Выбрать язык " />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:autoText="false"
+                    android:text="Реализовано с помощью сервиса «Яндекс.Словарь"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:autoLink="web"
+                    android:autoText="false"
+                    android:gravity="bottom"
+                    android:text="https://tech.yandex.ru/dictionary/"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14sp" />
+            </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 

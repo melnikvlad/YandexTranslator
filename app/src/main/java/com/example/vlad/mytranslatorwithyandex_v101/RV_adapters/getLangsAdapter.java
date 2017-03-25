@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.DefaultLanguageFragment;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.TranslateFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 
@@ -62,9 +64,31 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                 Context applicationContext = MainActivity.getContextOfApplication();
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putString(Constants.DEFAULT_LANGUAGE,holder.lang.getText().toString());
-                editor.apply();
-                replaceFragments();
+                int id = prefs.getInt(Constants.BTN_CLICKED,-1);
+                Log.d(Constants.TAG,"По целчку на список имеем ситуацию перехода на :"+ id);
+
+                switch (id){
+                    case 1:
+                        editor.putString(Constants.TRANSLATE_FROM,holder.lang.getText().toString());
+                        editor.apply();
+                        Log.d(Constants.TAG,"Выбрано FROM :"+prefs.getString(Constants.TRANSLATE_FROM,""));
+                        goToTranslateFragment();
+                        break;
+                    case 2:
+                        editor.putString(Constants.TRANSLATE_TO,holder.lang.getText().toString());
+                        editor.apply();
+                        Log.d(Constants.TAG,"Выбрано TO :"+prefs.getString(Constants.TRANSLATE_TO,""));
+                        goToTranslateFragment();
+                        break;
+                    case 3:
+                        editor.putString(Constants.DEFAULT_LANGUAGE,holder.lang.getText().toString());
+                        editor.putInt(Constants.UI,1);
+                        editor.apply();
+                        Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE,""));
+                        goToDefaultLanguageFragment();
+                        break;
+                }
+
             }
         });
     }
@@ -93,10 +117,18 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                 }
         notifyDataSetChanged();
     }
-    private  void replaceFragments(){
+    private  void goToDefaultLanguageFragment(){
+        Log.d(Constants.TAG,"Переходим на дефолт:");
         DefaultLanguageFragment defaultLanguageFragment = new DefaultLanguageFragment();
         FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.defaultlang_fragment_frame,defaultLanguageFragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.settings_frame,defaultLanguageFragment).commit();
+        fragmentManager.beginTransaction().addToBackStack(null);
+    }
+    private  void goToTranslateFragment(){
+        Log.d(Constants.TAG,"Переходим на транслейт:");
+        TranslateFragment translateFragment = new TranslateFragment();
+        FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.settings_frame,translateFragment).commit();
         fragmentManager.beginTransaction().addToBackStack(null);
     }
 }
