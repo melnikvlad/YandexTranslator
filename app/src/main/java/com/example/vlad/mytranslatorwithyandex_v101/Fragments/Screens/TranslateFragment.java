@@ -84,9 +84,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         rv = (RecyclerView)view.findViewById(R.id.recycler_view);
         manager = new LinearLayoutManager(getActivity());
 
-
             getLanguages();
-
 
         btn_translate_from.setOnClickListener(this);
         btn_switch_language.setOnClickListener(this);
@@ -106,6 +104,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
 
     @Override
     public void onClick(View view) {
+        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
         switch (view.getId()){
             case R.id.translate_from:
                 goToSettings(R.id.translate_from);
@@ -115,10 +114,10 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                 break;
             case R.id.switch_language:
                 swapLanguages();
-                Log.d(Constants.TAG,"Выбрано при запуске FROM :"+sharedPreferences.getString(Constants.TRANSLATE_FROM,""));
-                btn_translate_from.setText(sharedPreferences.getString(Constants.TRANSLATE_FROM,""));
-                Log.d(Constants.TAG,"Выбрано при запуске TO :"+sharedPreferences.getString(Constants.TRANSLATE_TO,""));
-                btn_translate_to.setText(sharedPreferences.getString(Constants.TRANSLATE_TO,""));
+                Log.d(Constants.TAG,"Выбрано при запуске FROM :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
+                btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
+                Log.d(Constants.TAG,"Выбрано при запуске TO :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+                btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
                 break;
 
         }
@@ -198,31 +197,34 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         sharedPreferences = getPreferences();
         final SharedPreferences.Editor editor = sharedPreferences.edit();
 
-            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
+                Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
 
-            AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
+                AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
 
-            final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
+                final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
 
-            CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
-                @Override
-                public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
-                    AllLanguagesResponse languges_response = response.body();
-                    Languages languages = new Languages(getResponseKeys(languges_response),getResponseValues(languges_response));
-                    db.insertData(languages);
-                    Log.d(Constants.TAG,"Выбрано при запуске FROM :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
-                    btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
-                    Log.d(Constants.TAG,"Выбрано при запуске TO :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
-                    btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
-                    editor.putInt(Constants.REFRESH,1);
-                    editor.apply();
-                }
-                @Override
-                public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
-            });
-    }
+                CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
+                    @Override
+                    public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
+                        AllLanguagesResponse languges_response = response.body();
+                        Languages languages = new Languages(getResponseKeys(languges_response),getResponseValues(languges_response));
+                        if(db.getLanguagesCount() == 0) {
+                            db.insertData(languages);
+                        }
+                        Log.d(Constants.TAG,"Выбрано при запуске FROM :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
+                        btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
+                        Log.d(Constants.TAG,"Выбрано при запуске TO :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+                        btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+                        editor.putInt(Constants.REFRESH,1);
+                        editor.apply();
+                    }
+                    @Override
+                    public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
+                });
+            }
+
 //=========================================================================================================================================================
 private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
     String ui;
@@ -472,13 +474,16 @@ private Map<String, String> getLanguagesParams(){ // Params for Translate retrof
     private void  swapLanguages(){
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
-        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
 
         String temp ="";
-        temp = db.getValueByKey(prefs.getString(Constants.TRANSLATE_FROM,""));
-        editor.putString(Constants.TRANSLATE_FROM,db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+        String to ="";
+
+        temp = prefs.getString(Constants.TRANSLATE_FROM,"");
+        to = prefs.getString(Constants.TRANSLATE_TO,"");
+        editor.putString(Constants.TRANSLATE_FROM,to);
         editor.putString(Constants.TRANSLATE_TO,temp);
         editor.apply();
+
     }
     private Context getActivityContex(){
         Context applicationContext = MainActivity.getContextOfApplication();

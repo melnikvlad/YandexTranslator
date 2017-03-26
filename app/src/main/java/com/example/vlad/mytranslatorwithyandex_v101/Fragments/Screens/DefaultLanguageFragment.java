@@ -82,7 +82,9 @@ public class DefaultLanguageFragment extends Fragment {
                 AllLanguagesResponse languges_response = response.body();
 
                 Languages languages = new Languages(getResponseKeys(languges_response),getResponseValues(languges_response));
-                db.insertData(languages);
+                if(db.getLanguagesCount() == 0) {
+                    db.insertData(languages);
+                }
 
                 selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"")));
 

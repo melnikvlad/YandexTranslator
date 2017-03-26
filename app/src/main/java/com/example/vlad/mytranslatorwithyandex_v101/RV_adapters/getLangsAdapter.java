@@ -89,13 +89,13 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                         Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE,""));
                         goToTranslateFragment();
                         break;
-                    case 4:
-                        editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
-                        editor.apply();
-                        db.deleteAll();
-                        Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE_INTERFACE,""));
-                        goToDefaultLanguageFragment();
-                        break;
+//                    case 4:
+//                        editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
+//                        editor.apply();
+//                        db.deleteAll();
+//                        Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE_INTERFACE,""));
+//                        goToDefaultLanguageFragment();
+//                        break;
                 }
             }
         });
@@ -136,7 +136,7 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
         Log.d(Constants.TAG,"Переходим на транслейт:");
         ViewPagerFragment viewPagerFragment = new ViewPagerFragment();
         FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.settings_frame,viewPagerFragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.fragment_frame,viewPagerFragment).commit();
         fragmentManager.beginTransaction().addToBackStack(null);
     }
     private Context getActivityContex(){
