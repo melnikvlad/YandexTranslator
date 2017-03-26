@@ -85,8 +85,7 @@ public class SettingsFragment extends Fragment {
     private void getLanguages() {
         applicationContext = MainActivity.getContextOfApplication();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext);
-        final SharedPreferences.Editor editor = sharedPreferences.edit();
-       if((db.getLanguagesCount()== 0)||(sharedPreferences.getInt(Constants.UI,-1) == 1)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
+       if((db.getLanguagesCount()== 0)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
 
            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                    .addConverterFactory(GsonConverterFactory.create())
@@ -102,10 +101,7 @@ public class SettingsFragment extends Fragment {
                    AllLanguagesResponse languges_response = response.body();
 
                    Languages languages = new Languages(getKeys(languges_response),getValues(languges_response));
-                   db.deleteAll();
                    db.insertData(languages);
-                   editor.putInt(Constants.UI,0);
-                   editor.apply();
 
                    rv.setLayoutManager(manager); // View in Recycler View
                    adapter = new getLangsAdapter(
@@ -124,7 +120,6 @@ public class SettingsFragment extends Fragment {
                    getActivity(),db.getAllData().getValues());
            rv.setAdapter(adapter);
        }
-
     }
 
     private void setupSearchView() {
@@ -171,12 +166,10 @@ public class SettingsFragment extends Fragment {
         }
 
         private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
-            String ui ="";
+            String ui;
             LanguagesSQLite db = new LanguagesSQLite(getActivity().getApplicationContext());
-            if(ui.isEmpty()){
-                ui = "ru";
-            }
-            ui = db.getKeyByValue(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,""));
+            ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
+            Log.d(Constants.TAG,"Setting UI "+ ui);
 
             Map<String, String> params = new HashMap<>();
             params.put("key", Constants.API_KEY_TRANSLATE);

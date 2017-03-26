@@ -3,9 +3,11 @@ package com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
@@ -22,15 +24,19 @@ import android.widget.Toast;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LookupService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.TranslateService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.AllLanguagesResponse;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Lookup.LookupResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Lookup.Tr;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Translate.TranslaterResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +48,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.LookupAdapter;
+import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getLangsAdapter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class TranslateFragment extends Fragment implements View.OnClickListener {
@@ -53,13 +65,13 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager manager;
     private SharedPreferences sharedPreferences;
-    private Context applicationContext;
+
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        applicationContext = MainActivity.getContextOfApplication();
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
+        sharedPreferences = getPreferences();
         View view = inflater.inflate(R.layout.translate_fragment, container, false);
         btn_translate_from = (Button)view.findViewById(R.id.translate_from);
         btn_switch_language = (Button)view.findViewById(R.id.switch_language);
@@ -72,10 +84,9 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         rv = (RecyclerView)view.findViewById(R.id.recycler_view);
         manager = new LinearLayoutManager(getActivity());
 
-        Log.d(Constants.TAG,"Выбрано при запуске FROM :"+sharedPreferences.getString(Constants.TRANSLATE_FROM,""));
-        btn_translate_from.setText(sharedPreferences.getString(Constants.TRANSLATE_FROM,""));
-        Log.d(Constants.TAG,"Выбрано при запуске TO :"+sharedPreferences.getString(Constants.TRANSLATE_TO,""));
-        btn_translate_to.setText(sharedPreferences.getString(Constants.TRANSLATE_TO,""));
+
+            getLanguages();
+
 
         btn_translate_from.setOnClickListener(this);
         btn_switch_language.setOnClickListener(this);
@@ -182,7 +193,83 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         });
 
     }
+    private void getLanguages() {
+        final LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
+        sharedPreferences = getPreferences();
+        final SharedPreferences.Editor editor = sharedPreferences.edit();
+
+            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
+
+            final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
+
+            CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
+                @Override
+                public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
+                    AllLanguagesResponse languges_response = response.body();
+                    Languages languages = new Languages(getResponseKeys(languges_response),getResponseValues(languges_response));
+                    db.insertData(languages);
+                    Log.d(Constants.TAG,"Выбрано при запуске FROM :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
+                    btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
+                    Log.d(Constants.TAG,"Выбрано при запуске TO :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+                    btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+                    editor.putInt(Constants.REFRESH,1);
+                    editor.apply();
+                }
+                @Override
+                public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
+            });
+    }
 //=========================================================================================================================================================
+private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
+    String ui;
+    LanguagesSQLite db = new LanguagesSQLite(getActivity().getApplicationContext());
+    ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
+
+    Map<String, String> params = new HashMap<>();
+    params.put("key", Constants.API_KEY_TRANSLATE);
+    params.put("ui", ui);
+    return params;
+}
+    private List<String> getResponseKeys(AllLanguagesResponse response){
+        List<String> keys_list = new ArrayList<>();
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(response);
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONObject langsObj = jsonObject.getJSONObject("langs");
+            Iterator<String> iterator = langsObj.keys();
+            while (iterator.hasNext()){
+                String key = iterator.next();
+                keys_list.add(key);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return keys_list;
+    }
+
+    private List<String> getResponseValues(AllLanguagesResponse response){
+        List<String> values_list = new ArrayList<>();
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(response);
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONObject langsObj = jsonObject.getJSONObject("langs");
+            Iterator<String> iterator = langsObj.keys();
+            while (iterator.hasNext()){
+                String key = iterator.next();
+                String value = langsObj.get(key).toString();
+                values_list.add(value);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return values_list;
+    }
 
     private int getDefSize(LookupResponse response){ // How many Def[] arrays ?
         return response.getDef().size();
@@ -336,11 +423,10 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     }
 
     private Map<String,String> getTranslateParams() { // Params for Translate retrofit request
-        applicationContext = MainActivity.getContextOfApplication();
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext);
-        LanguagesSQLite db = new LanguagesSQLite(getActivity().getApplicationContext());
-        String from = db.getKeyByValue(sharedPreferences.getString(Constants.TRANSLATE_FROM,""));
-        String to = db.getKeyByValue(sharedPreferences.getString(Constants.TRANSLATE_TO,""));
+        SharedPreferences sharedPreferences = getPreferences();
+        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
+        String from = sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
+        String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_TRANSLATE);
         params.put("lang", from+"-"+to);
@@ -349,12 +435,11 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     }
 
     private Map<String,String> getLookupParams() {  // Params for Lookup retrofit request
-        applicationContext = MainActivity.getContextOfApplication();
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext);
-        LanguagesSQLite db = new LanguagesSQLite(getActivity().getApplicationContext());
-        String ui = db.getKeyByValue(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,""));
-        String from = db.getKeyByValue(sharedPreferences.getString(Constants.TRANSLATE_FROM,""));
-        String to = db.getKeyByValue(sharedPreferences.getString(Constants.TRANSLATE_TO,""));
+        SharedPreferences sharedPreferences = getPreferences();
+        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
+        String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
+        String from =sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
+        String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_LOOKUP);
         params.put("lang",from+"-"+to);
@@ -363,8 +448,8 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         return params;
     }
     private void goToSettings(int id){
-        Context applicationContext = MainActivity.getContextOfApplication();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+
+        SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
         Log.d(Constants.TAG,"Выбрана кнопка #"+ id);
 
@@ -385,15 +470,34 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         ft.commit();
     }
     private void  swapLanguages(){
-        Context applicationContext = MainActivity.getContextOfApplication();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+        SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
+        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
 
         String temp ="";
-        temp = prefs.getString(Constants.TRANSLATE_FROM,"");
-        editor.putString(Constants.TRANSLATE_FROM,sharedPreferences.getString(Constants.TRANSLATE_TO,""));
+        temp = db.getValueByKey(prefs.getString(Constants.TRANSLATE_FROM,""));
+        editor.putString(Constants.TRANSLATE_FROM,db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
         editor.putString(Constants.TRANSLATE_TO,temp);
         editor.apply();
+    }
+    private Context getActivityContex(){
+        Context applicationContext = MainActivity.getContextOfApplication();
+        return applicationContext;
+    }
+    private SharedPreferences getPreferences(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
+        return prefs;
+    }
+    private  void refresh(){
+        SharedPreferences sharedPreferences = getPreferences();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(Constants.REFRESH,0);
+        editor.apply();
+        Log.d(Constants.TAG,"Обновить:");
+        TranslateFragment fragment = new TranslateFragment();
+        android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.translate_fragment_frame,fragment);
+        ft.commit();
     }
 }
 

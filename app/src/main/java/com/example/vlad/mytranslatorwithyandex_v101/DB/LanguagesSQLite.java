@@ -57,8 +57,7 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         contentValues.put(COL_3, languages.getValues().get(i));
          db.insert(TABLE_NAME,null ,contentValues);
   }
-
-
+        Log.d(Constants.TAG,"База наполнена");
         db.close();
     }
 
@@ -88,8 +87,20 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
                 key = cursor.getString(1);
             } while (cursor.moveToNext());
         }
-        Log.d(Constants.TAG,"UI :"+ key);
         return key;
+    }
+
+    public String getValueByKey(String key) {
+        String value ="";
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE KEY=?", new String[]{key + ""});
+
+        if (cursor.moveToFirst()) {
+            do {
+                value = cursor.getString(2);
+            } while (cursor.moveToNext());
+        }
+        return value;
     }
 
     public int getLanguagesCount() {
@@ -108,6 +119,7 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_NAME,null,null);
         db.execSQL("DELETE FROM "+ TABLE_NAME);
+        Log.d(Constants.TAG,"База удалена в адаптере");
         db.close();
     }
 }
