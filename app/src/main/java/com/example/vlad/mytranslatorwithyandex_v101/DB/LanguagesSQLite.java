@@ -15,12 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LanguagesSQLite extends SQLiteOpenHelper{
-    public final static int DB_VERSION = 1;
+    public final static int DB_VERSION = 2;
     public final static String DB_NAME = "YandexTranslatorDB";
     public final static String TABLE_NAME = "Languages";
     public final static String COL_1 = "ID";
     public final static String COL_2 = "KEY";
     public final static String COL_3 = "VALUE";
+    public final static String COL_4 = "DIRECTIONS";
 
     public LanguagesSQLite(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -32,7 +33,8 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         String query = "CREATE TABLE "+TABLE_NAME+
                 " ("+COL_1+" INTEGER PRIMARY KEY, " +
                 COL_2+" TEXT," +
-                COL_3+" TEXT)";
+                COL_3+" TEXT," +
+                COL_4+" TEXT"+")";
         db.execSQL(query);
     }
 
@@ -53,15 +55,17 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         ContentValues contentValues = new ContentValues();
 
      for (int i = 0;i< languages.getKeys().size();i++){
-        contentValues.put(COL_2, languages.getKeys().get(i));
-        contentValues.put(COL_3, languages.getValues().get(i));
-         db.insert(TABLE_NAME,null ,contentValues);
-  }
+            contentValues.put(COL_2, languages.getKeys().get(i));
+            contentValues.put(COL_3, languages.getValues().get(i));
+            contentValues.put(COL_4, languages.getDirs().get(i));
+            db.insert(TABLE_NAME,null ,contentValues);
+        }
         Log.d(Constants.TAG,"База наполнена");
         db.close();
     }
 
     public Languages getAllData() {
+        List<String> dirList = new ArrayList<String>();
         List<String> keyList = new ArrayList<String>();
         List<String> valueList = new ArrayList<String>();
         String selectQuery = "SELECT  * FROM " + TABLE_NAME;
@@ -72,9 +76,10 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
             do {
                 keyList.add(cursor.getString(1));
                 valueList.add(cursor.getString(2));
+                dirList.add(cursor.getString(3));
             } while (cursor.moveToNext());
         }
-        Languages languages = new Languages(keyList,valueList);
+        Languages languages = new Languages(dirList,keyList,valueList);
         return languages;
     }
     public String getKeyByValue(String value) {
@@ -101,6 +106,44 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
             } while (cursor.moveToNext());
         }
         return value;
+    }
+
+    public List<String> RewriteDirsInValues(List<String> direction){
+        String from = "";
+        String to = "";
+        List<String> result = new ArrayList<>();
+        String[] splited;
+        for (int i = 0;i<direction.size();i++){
+            splited = direction.get(i).split("-");
+            from = splited[0];
+            to = splited[1];
+            result.add(this.getValueByKey(from)+"                 "+this.getValueByKey(to)) ;
+            Log.d(Constants.TAG,"FROM "+direction.get(i).toString()+ " TO "+result.get(i).toString());
+        }
+
+        return result;
+    }
+
+    public boolean checkForTranslateDirectionsExists(String direction){
+        String value ="";
+        boolean exist = false;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE DIRECTIONS=?", new String[]{direction + ""});
+
+        if (cursor.moveToFirst()) {
+            do {
+                value = cursor.getString(3);
+                exist = true;
+            } while (cursor.moveToNext());
+        }
+        if(exist)
+        {
+            Log.d(Constants.TAG,direction + " EXIST");
+        }
+        else {
+            Log.d(Constants.TAG,direction + " NOT EXIST");
+        }
+        return exist;
     }
 
     public int getLanguagesCount() {

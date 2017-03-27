@@ -23,33 +23,30 @@
             android:id="@+id/translate_from"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_marginRight="10dp"
             android:background="@android:color/transparent"
             android:text=""
             android:textAlignment="center"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textColor="@android:color/background_dark"
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/switch_language"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:textAlignment="center"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:layout_width="35dp"
+            android:layout_height="30dp"
+            android:background="@drawable/swap"
+            android:textAlignment="center" />
 
         <Button
             android:id="@+id/translate_to"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:background="@android:color/transparent"
             android:text=""
             android:textAlignment="center"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textColor="@android:color/background_dark"
+            android:textSize="18sp" />
     </LinearLayout>
     <EditText
         android:layout_width="match_parent"
@@ -113,7 +110,7 @@
             android:layout_gravity="bottom"
             android:text="Переведено сервисом «Яндекс.Переводчик"
             android:textAlignment="center"
-            android:textColor="@color/colorAccent"
+            android:textColor="@android:color/background_dark"
             android:textSize="14sp" />
 
         <TextView

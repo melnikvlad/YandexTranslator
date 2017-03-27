@@ -7,12 +7,11 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.SettingsFragment;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.LanguagesFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.ViewPagerFragment;
 
 public class MainActivity extends FragmentActivity
@@ -35,8 +34,8 @@ public class MainActivity extends FragmentActivity
         SharedPreferences.Editor editor = prefs.edit();
         Fragment fragment;
         if(db.getLanguagesCount() == 0){
-            Log.d(Constants.TAG,"Переходим из MainActivity--> SettingsFragment");
-            fragment = new SettingsFragment();
+            Log.d(Constants.TAG,"Переходим из MainActivity--> LanguagesFragment");
+            fragment = new LanguagesFragment();
             editor.putInt(Constants.BTN_CLICKED,3);
             editor.putString(Constants.DEFAULT_LANGUAGE,"en");
             editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,"en");

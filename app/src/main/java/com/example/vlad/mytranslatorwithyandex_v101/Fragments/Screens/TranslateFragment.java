@@ -3,16 +3,11 @@ package com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +43,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.LookupAdapter;
-import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getLangsAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -124,6 +118,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     }
 //====================================================== MAIN TRANSLATE AND LOOKUP METHOD ==================================================================================
     private void Translate(String text) {
+        final LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
 
         Retrofit retrofitTR = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                .addConverterFactory(GsonConverterFactory.create())
@@ -142,10 +137,15 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         CallToTranslate.enqueue(new Callback<TranslaterResponse>() {   // Translate call
             @Override
             public void onResponse(Call<TranslaterResponse> call, Response<TranslaterResponse> response) {
+                if (db.checkForTranslateDirectionsExists(LanguageQuery())) {
+                    TranslaterResponse translate_response = response.body(); // Translate response
+                    // Lets cut square braces off and view normal text
+                    trans.setText(translate_response.getText().toString().substring(1, translate_response.getText().toString().length() - 1));
+                }
+                else {
+                    Toast.makeText(getActivity(), "Wrong Translate Direction in translate", Toast.LENGTH_LONG).show();
+                }
 
-                TranslaterResponse translate_response = response.body(); // Translate response
-                // Lets cut square braces off and view normal text
-                trans.setText(translate_response.getText().toString().substring(1,translate_response.getText().toString().length()-1));
             }
 
             @Override
@@ -159,12 +159,13 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             public void onResponse(Call<LookupResponse> call, Response<LookupResponse> response) {
 
                 LookupResponse lookup_response = response.body();  // Lookup response
-                if(!lookup_response.getDef().isEmpty()){ //if Lookup method cant find any sugestions to request text,then need to hide fields to  error messages
+
+                if(db.checkForTranslateDirectionsExists(LanguageQuery())){ //if Lookup method cant find any sugestions to request text,then need to hide fields to  error messages
                     rv.setVisibility(View.VISIBLE);
                     def.setVisibility(View.VISIBLE);
                     pos.setVisibility(View.VISIBLE);
-                    def.setText(lookup_response.getDef().get(0).getText().toString());
-                    pos.setText(lookup_response.getDef().get(0).getPos().toString());
+                    def.setText(lookup_response.getDef().get(0).getText());
+                    pos.setText(lookup_response.getDef().get(0).getPos());
                     rv.setLayoutManager(manager); // View in Recycler View
                     adapter = new LookupAdapter(
                             getActivity().getApplication(),
@@ -181,7 +182,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                     rv.setVisibility(View.GONE);
                     def.setVisibility(View.GONE);
                     pos.setVisibility(View.GONE);
-                    Toast.makeText(getActivity(), "Cant find translation", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Wrong Translate Direction in Lookup", Toast.LENGTH_LONG).show();
                 }
                 }
 
@@ -209,7 +210,10 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                     @Override
                     public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
                         AllLanguagesResponse languges_response = response.body();
-                        Languages languages = new Languages(getResponseKeys(languges_response),getResponseValues(languges_response));
+
+
+                        Languages languages = new Languages(getResponseDirs(languges_response),getResponseKeys(languges_response),getResponseValues(languges_response));
+
                         if(db.getLanguagesCount() == 0) {
                             db.insertData(languages);
                         }
@@ -226,16 +230,14 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             }
 
 //=========================================================================================================================================================
-private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
-    String ui;
-    LanguagesSQLite db = new LanguagesSQLite(getActivity().getApplicationContext());
-    ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
 
-    Map<String, String> params = new HashMap<>();
-    params.put("key", Constants.API_KEY_TRANSLATE);
-    params.put("ui", ui);
-    return params;
-}
+    private List<String> getResponseDirs(AllLanguagesResponse response){
+        List<String> dirs_list = new ArrayList<>();
+        dirs_list = response.getDirs();
+
+        return dirs_list;
+    }
+
     private List<String> getResponseKeys(AllLanguagesResponse response){
         List<String> keys_list = new ArrayList<>();
         Gson gson = new GsonBuilder().create();
@@ -424,6 +426,12 @@ private Map<String, String> getLanguagesParams(){ // Params for Translate retrof
         return rv_rowBot_i;
     }
 
+    private String LanguageQuery(){
+        String from =sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
+        String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
+        return from+"-"+to;
+    }
+
     private Map<String,String> getTranslateParams() { // Params for Translate retrofit request
         SharedPreferences sharedPreferences = getPreferences();
         LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
@@ -431,7 +439,7 @@ private Map<String, String> getLanguagesParams(){ // Params for Translate retrof
         String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_TRANSLATE);
-        params.put("lang", from+"-"+to);
+        params.put("lang", LanguageQuery());
         params.put("text", text);
         return params;
     }
@@ -444,11 +452,23 @@ private Map<String, String> getLanguagesParams(){ // Params for Translate retrof
         String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_LOOKUP);
-        params.put("lang",from+"-"+to);
+        params.put("lang",LanguageQuery());
         params.put("ui", ui);
         params.put("text", text);
         return params;
     }
+
+    private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
+        String ui;
+        LanguagesSQLite db = new LanguagesSQLite(getActivity().getApplicationContext());
+        ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("key", Constants.API_KEY_TRANSLATE);
+        params.put("ui", ui);
+        return params;
+    }
+
     private void goToSettings(int id){
 
         SharedPreferences prefs = getPreferences();
@@ -466,7 +486,7 @@ private Map<String, String> getLanguagesParams(){ // Params for Translate retrof
 
         Log.d(Constants.TAG,"В преференцах лежит:"+prefs.getInt(Constants.BTN_CLICKED,0));
         Log.d(Constants.TAG,"Переходим на сеттингс:");
-        SettingsFragment fragment = new SettingsFragment();
+        LanguagesFragment fragment = new LanguagesFragment();
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.translate_fragment_frame,fragment);
         ft.commit();

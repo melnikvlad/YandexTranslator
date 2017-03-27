@@ -15,8 +15,7 @@ import android.widget.TextView;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.DefaultLanguageFragment;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.TranslateFragment;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.SettingsFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.ViewPagerFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
@@ -29,7 +28,7 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
     private List<String> langData;
     private List<String> filterList;
 
-    public class LanguagesViewHolder extends RecyclerView.ViewHolder {
+    public  class LanguagesViewHolder extends RecyclerView.ViewHolder {
         private TextView lang;
         private CardView cardView;
 
@@ -52,7 +51,7 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
 
     @Override
     public getLangsAdapter.LanguagesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(mContext).inflate(R.layout.cardview_settings, parent, false);
+        View v = LayoutInflater.from(mContext).inflate(R.layout.cardview_languages, parent, false);
         getLangsAdapter.LanguagesViewHolder viewHolder = new getLangsAdapter.LanguagesViewHolder(v);
         return viewHolder;
     }
@@ -89,13 +88,13 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                         Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE,""));
                         goToTranslateFragment();
                         break;
-//                    case 4:
-//                        editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
-//                        editor.apply();
-//                        db.deleteAll();
-//                        Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE_INTERFACE,""));
-//                        goToDefaultLanguageFragment();
-//                        break;
+                    case 4:
+                        editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
+                        editor.apply();
+                        db.deleteAll();
+                        Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE_INTERFACE,""));
+                        goToSettingsFragment();
+                        break;
                 }
             }
         });
@@ -125,18 +124,19 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                 }
         notifyDataSetChanged();
     }
-    private  void goToDefaultLanguageFragment(){
+
+    private  void goToSettingsFragment(){
         Log.d(Constants.TAG,"Переходим на дефолт:");
-        DefaultLanguageFragment defaultLanguageFragment = new DefaultLanguageFragment();
+        SettingsFragment settingsFragment = new SettingsFragment();
         FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.settings_frame,defaultLanguageFragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.languages_frame,settingsFragment).commit();
         fragmentManager.beginTransaction().addToBackStack(null);
     }
     private  void goToTranslateFragment(){
         Log.d(Constants.TAG,"Переходим на транслейт:");
         ViewPagerFragment viewPagerFragment = new ViewPagerFragment();
         FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.fragment_frame,viewPagerFragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.languages_frame,viewPagerFragment).commit();
         fragmentManager.beginTransaction().addToBackStack(null);
     }
     private Context getActivityContex(){

@@ -13,9 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.DefaultLanguageFragment;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.FavouriteFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.SettingsFragment;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.FavouriteFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.TranslateFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 
@@ -26,7 +25,7 @@ public class ViewPagerFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        int[] icons = {R.drawable.profile,R.drawable.search2, R.drawable.settings2};
+        int[] icons = {R.drawable.prof2,R.drawable.hostory, R.drawable.set2};
         View view = inflater.inflate(R.layout.viewpager,container,false);
         TabLayout tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         viewPager = (ViewPager) view.findViewById(R.id.main_tab_content);
@@ -59,7 +58,7 @@ public class ViewPagerFragment extends Fragment {
                    FavouriteFragment favouriteFragment = new FavouriteFragment();
                     return favouriteFragment;
                 case 2:
-                   DefaultLanguageFragment defaultLanguageFragment = new DefaultLanguageFragment();
+                   SettingsFragment defaultLanguageFragment = new SettingsFragment();
                     return defaultLanguageFragment;
 
                 default:
