@@ -18,6 +18,7 @@ import com.example.vlad.mytranslatorwithyandex_v101.R;
 public class ViewPagerFragment extends Fragment {
     ViewPager viewPager;
     TabLayout tabLayout;
+    HistoryFragment historyFragment;
 
     @Nullable
     @Override
@@ -43,14 +44,13 @@ public class ViewPagerFragment extends Fragment {
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    HistoryFragment historyFragment = new HistoryFragment();
+                    historyFragment = new HistoryFragment();
                     return historyFragment;
                 case 1:
                     FavouriteFragment favouriteFragment = new FavouriteFragment();
                     return favouriteFragment;
                 default:
-                    historyFragment = new HistoryFragment();
-                    return historyFragment;
+                    return null;
             }
         }
         @Override

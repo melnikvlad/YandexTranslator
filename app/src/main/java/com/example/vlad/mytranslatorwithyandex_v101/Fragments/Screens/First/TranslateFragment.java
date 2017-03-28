@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,8 @@ import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesServi
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LookupService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.TranslateService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.Translate.History;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Directions;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Lookup.LookupResponse;
@@ -125,6 +128,13 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             public void onResponse(Call<TranslaterResponse> call, Response<TranslaterResponse> response) {
                 if (db.checkForTranslateDirectionsExists(LanguageQuery())) {
                     TranslaterResponse translate_response = response.body(); // Translate response
+                    History history = new History(
+                            input_field.getText().toString(),
+                            translate_response.getText().get(0),
+                            translate_response.getLang()
+                    );
+                    db.insertHistory(history);
+                    Log.d(Constants.TAG,"INSERT :"+db.getHistoryCount()+" "+ db.getHistoryWords()+" "+db.getHistoryTranslates()+" "+db.getHistoryDirs());
                     // Lets cut square braces off and view normal text
                     trans.setText(translate_response.getText().toString().substring(1, translate_response.getText().toString().length() - 1));
                 }
@@ -187,12 +197,15 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             CallToLanguages.enqueue(new Callback<getLangsResponse>() {
                 @Override
                 public void onResponse(Call<getLangsResponse> call, Response<getLangsResponse> response) {
-                    getLangsResponse languges_response = response.body();
+                    getLangsResponse serverResponse = response.body();
                     Languages languages = new Languages(
-                            languges_response.getResponseKeys(languges_response),
-                            languges_response.getResponseValues(languges_response)
+                            serverResponse.getResponseKeys(serverResponse),
+                            serverResponse.getResponseValues(serverResponse)
                     );
                     db.insertLanguages(languages);
+
+                    Directions directions = new Directions(serverResponse.getResponseDirs(serverResponse));
+                    db.insertDirections(directions);
 
                     btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
                     btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));

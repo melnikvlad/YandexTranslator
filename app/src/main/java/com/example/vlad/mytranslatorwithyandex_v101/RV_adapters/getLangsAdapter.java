@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.MainScreen;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.Third.SettingsFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.First.TranslateFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
@@ -78,7 +79,7 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                         editor.putString(Constants.DEFAULT_LANGUAGE,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.apply();
                         db.deleteAll();
-                        goToTranslateFragment();
+                        goToMainScreenFragment();
                         break;
                     case 4:
                         editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
@@ -120,6 +121,12 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
         SettingsFragment settingsFragment = new SettingsFragment();
         FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.languages_frame,settingsFragment).commit();
+        fragmentManager.beginTransaction().addToBackStack(null);
+    }
+    private  void goToMainScreenFragment(){
+        MainScreen mainScreen = new MainScreen();
+        FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.languages_frame,mainScreen).commit();
         fragmentManager.beginTransaction().addToBackStack(null);
     }
     private  void goToTranslateFragment(){

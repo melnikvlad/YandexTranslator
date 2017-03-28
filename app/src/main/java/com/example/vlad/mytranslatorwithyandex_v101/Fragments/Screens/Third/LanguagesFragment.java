@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Directions;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
@@ -80,7 +82,7 @@ public class LanguagesFragment extends Fragment{
 
     public void getLanguages() {
         sharedPreferences = getPreferences();
-       if((db.getLanguagesCount()== 0)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
+       if((db.getLanguagesCount()== 0) || (db.getDirectionsCount() == 0)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
 
            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                    .addConverterFactory(GsonConverterFactory.create())

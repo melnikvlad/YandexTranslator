@@ -16,6 +16,7 @@ import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Directions;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
@@ -83,7 +84,6 @@ public class SettingsFragment extends Fragment {
                             serverResponse.getResponseKeys(serverResponse),
                             serverResponse.getResponseValues(serverResponse)
                     );
-
                     db.insertLanguages(languages);
 
                     selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"")));

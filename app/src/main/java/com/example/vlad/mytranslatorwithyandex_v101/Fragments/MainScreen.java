@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.Second.HistoryFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.Second.ViewPagerFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.Third.SettingsFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.Second.FavouriteFragment;
@@ -27,7 +28,7 @@ public class MainScreen extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        int[] icons = {R.drawable.prof2,R.drawable.hostory, R.drawable.set2};
+        final int[] icons = {R.drawable.prof2,R.drawable.hostory, R.drawable.set2};
         View view = inflater.inflate(R.layout.viewpager,container,false);
         tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         viewPager = (ViewPager) view.findViewById(R.id.main_tab_content);
@@ -38,12 +39,30 @@ public class MainScreen extends Fragment {
         for (int i = 0; i < icons.length; i++) {
             tabLayout.getTabAt(i).setIcon(icons[i]);
         }
-        tabLayout.getTabAt(0).select();
+
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                viewPager.getAdapter().notifyDataSetChanged();
+                for (int i = 0; i < icons.length; i++) {
+                    tabLayout.getTabAt(i).setIcon(icons[i]);
+                }
+            }
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
+
         return view;
     }
 
     class ViewPagerAdapter extends FragmentStatePagerAdapter {
         Context context;
+
         public ViewPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
             this.context =context;
@@ -55,14 +74,13 @@ public class MainScreen extends Fragment {
                    TranslateFragment translateFragment = new TranslateFragment();
                     return translateFragment;
                 case 1:
-                   ViewPagerFragment viewPagerFragment = new ViewPagerFragment();
-                    return viewPagerFragment;
+                   ViewPagerFragment historyFragment = new ViewPagerFragment();
+                    return historyFragment;
                 case 2:
                    SettingsFragment defaultLanguageFragment = new SettingsFragment();
                     return defaultLanguageFragment;
                 default:
-                    translateFragment = new TranslateFragment();
-                    return translateFragment;
+                    return null;
             }
         }
         @Override
@@ -70,5 +88,9 @@ public class MainScreen extends Fragment {
             return Constants.MAIN_SCR_TAB_COUNT;
         }
 
+        @Override
+        public int getItemPosition(Object object) {
+            return POSITION_NONE;
+        }
     }
 }
