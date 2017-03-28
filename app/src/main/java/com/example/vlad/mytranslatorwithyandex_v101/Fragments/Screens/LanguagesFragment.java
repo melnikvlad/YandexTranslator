@@ -9,18 +9,17 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
-import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.AllLanguagesResponse;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.Languages;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getLangsAdapter;
@@ -38,7 +37,7 @@ public class LanguagesFragment extends Fragment{
     private RecyclerView rv;
     private getLangsAdapter adapter;
     private RecyclerView.LayoutManager manager;
-    private LanguagesSQLite db;
+    private DataBaseSQLite db;
     private SharedPreferences sharedPreferences;
     private Button back_to_settings;
 
@@ -50,7 +49,7 @@ public class LanguagesFragment extends Fragment{
         rv                  = (RecyclerView)view.findViewById(R.id.recycler_view_setings);
         searchView          = (SearchView)view.findViewById(R.id.serchview_settings);
         manager             = new LinearLayoutManager(getActivity());
-        db                  = new LanguagesSQLite(getActivity().getApplicationContext());
+        db                  = new DataBaseSQLite(getActivity().getApplicationContext());
 
         if(db.getLanguagesCount() == 0){
             back_to_settings.setVisibility(View.GONE);
@@ -79,7 +78,7 @@ public class LanguagesFragment extends Fragment{
         return view;
     }
 
-    private void getLanguages() {
+    public void getLanguages() {
         sharedPreferences = getPreferences();
        if((db.getLanguagesCount()== 0)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
 
@@ -88,32 +87,31 @@ public class LanguagesFragment extends Fragment{
                    .build();
 
            AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
-           final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
+           final Call<getLangsResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
 
-           CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
+           CallToLanguages.enqueue(new Callback<getLangsResponse>() {
                @Override
-               public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
+               public void onResponse(Call<getLangsResponse> call, Response<getLangsResponse> response) {
 
-                   AllLanguagesResponse languges_response = response.body();
+                   getLangsResponse serverResponse = response.body();
                    Languages languages = new Languages(
-                           languges_response.getResponseDirs(languges_response),
-                           languges_response.getResponseKeys(languges_response),
-                           languges_response.getResponseValues(languges_response)
+                           serverResponse.getResponseKeys(serverResponse),
+                           serverResponse.getResponseValues(serverResponse)
                    );
-                   db.insertData(languages);
+                   db.insertLanguages(languages);
 
                    rv.setLayoutManager(manager); // View in Recycler View
-                   adapter = new getLangsAdapter(getActivity(),db.getAllData().getValues());
+                   adapter = new getLangsAdapter(getActivity(),db.getAllLanguages().getValues());
                    rv.setAdapter(adapter);
                }
                @Override
-               public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {
+               public void onFailure(Call<getLangsResponse> call, Throwable t) {
                }
            });
        }
-       else { // if LanguagesSQLite DB is already exists and got all info --> view it in RV immediately
+       else { // if DataBaseSQLite DB is already exists and got all info --> view it in RV immediately
            rv.setLayoutManager(manager); // View in Recycler View
-           adapter = new getLangsAdapter(getActivity(),db.getAllData().getValues());
+           adapter = new getLangsAdapter(getActivity(),db.getAllLanguages().getValues());
            rv.setAdapter(adapter);
        }
     }
@@ -139,12 +137,12 @@ public class LanguagesFragment extends Fragment{
         ft.commit();
     }
 
-    private Context getActivityContex(){
+    private static Context getActivityContex(){
         Context applicationContext = MainActivity.getContextOfApplication();
         return applicationContext;
     }
 
-    private SharedPreferences getPreferences(){
+    private static SharedPreferences getPreferences(){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
         return prefs;
     }

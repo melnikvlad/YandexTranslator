@@ -1,6 +1,6 @@
 package com.example.vlad.mytranslatorwithyandex_v101.Interfaces;
 
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.AllLanguagesResponse;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
 
 import java.util.Map;
 
@@ -10,7 +10,7 @@ import retrofit2.http.QueryMap;
 
 public interface AllLanguagesService {
     @GET("getLangs")
-    Call<AllLanguagesResponse> makeAllLanguagesRequest(
+    Call<getLangsResponse> makeAllLanguagesRequest(
             @QueryMap Map<String, String> options
     );
 }

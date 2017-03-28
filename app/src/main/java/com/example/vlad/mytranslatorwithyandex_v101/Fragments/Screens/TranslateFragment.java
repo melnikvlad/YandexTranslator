@@ -17,13 +17,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
-import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LookupService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.TranslateService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.AllLanguagesResponse;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.Languages;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Lookup.LookupResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Translate.TranslaterResponse;
 
@@ -54,7 +54,6 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
         sharedPreferences = getPreferences();
         View view = inflater.inflate(R.layout.translate_fragment, container, false);
         btn_translate_from  = (Button)view.findViewById(R.id.translate_from);
@@ -87,7 +86,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
 
     @Override
     public void onClick(View view) {
-        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
+        DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
         switch (view.getId()){
             case R.id.translate_from:
                 goToLanguages(R.id.translate_from);
@@ -105,7 +104,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     }
 //====================================================== MAIN TRANSLATE AND LOOKUP METHOD ==================================================================================
     private void Translate(String text) {
-        final LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
+        final DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
 
         Retrofit retrofitTR = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                .addConverterFactory(GsonConverterFactory.create())
@@ -175,7 +174,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     }
 
     private void getLanguages() {
-        final LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
+        final DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
         sharedPreferences = getPreferences();
         if (db.getLanguagesCount() == 0){
             Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
@@ -183,24 +182,23 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                     .build();
 
             AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
-            final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
+            final Call<getLangsResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
 
-            CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
+            CallToLanguages.enqueue(new Callback<getLangsResponse>() {
                 @Override
-                public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
-                    AllLanguagesResponse languges_response = response.body();
+                public void onResponse(Call<getLangsResponse> call, Response<getLangsResponse> response) {
+                    getLangsResponse languges_response = response.body();
                     Languages languages = new Languages(
-                            languges_response.getResponseDirs(languges_response),
                             languges_response.getResponseKeys(languges_response),
                             languges_response.getResponseValues(languges_response)
                     );
-                    db.insertData(languages);
+                    db.insertLanguages(languages);
 
                     btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
                     btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
                 }
                 @Override
-                public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
+                public void onFailure(Call<getLangsResponse> call, Throwable t) {}
             });
         }
         else {

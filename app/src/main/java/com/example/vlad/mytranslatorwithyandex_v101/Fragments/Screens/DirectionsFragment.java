@@ -16,11 +16,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
-import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.AllLanguagesResponse;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.Languages;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Directions;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getDirsAdapter;
 import java.util.HashMap;
@@ -36,7 +36,7 @@ public class DirectionsFragment extends Fragment {
     private RecyclerView rv;
     private getDirsAdapter adapter;
     private RecyclerView.LayoutManager manager;
-    private LanguagesSQLite db;
+    private DataBaseSQLite db;
     private SharedPreferences sharedPreferences;
     private Button back_to_settings;
     @Nullable
@@ -47,9 +47,9 @@ public class DirectionsFragment extends Fragment {
         searchView          = (SearchView)view.findViewById(R.id.serchview_settings);
         rv                  = (RecyclerView)view.findViewById(R.id.recycler_view_setings);
         manager             = new LinearLayoutManager(getActivity());
-        db                  = new LanguagesSQLite(getActivity().getApplicationContext());
+        db                  = new DataBaseSQLite(getActivity().getApplicationContext());
 
-        getLanguages();
+        getDirections();
 
         setupSearchView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -72,39 +72,36 @@ public class DirectionsFragment extends Fragment {
         return view;
     }
 
-    private void getLanguages() {
+    private void getDirections() {
         sharedPreferences = getPreferences();
-        if((db.getLanguagesCount()== 0)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
+        if((db.getDirectionsCount()== 0)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
 
             Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
             AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
-            final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
+            final Call<getLangsResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
 
-            CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
+            CallToLanguages.enqueue(new Callback<getLangsResponse>() {
                 @Override
-                public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
-                    AllLanguagesResponse languges_response = response.body();
-                    Languages languages = new Languages(
-                            languges_response.getResponseDirs(languges_response),
-                            languges_response.getResponseKeys(languges_response),
-                            languges_response.getResponseValues(languges_response)
-                    );
-                    db.insertData(languages);
+                public void onResponse(Call<getLangsResponse> call, Response<getLangsResponse> response) {
+                    getLangsResponse serverResponse = response.body();
+                    Directions directions = new Directions(serverResponse.getResponseDirs(serverResponse));
+                    Log.d(Constants.TAG,"DIRS COUNT : "+ directions.getDirs().size());
+                    db.insertDirections(directions);
 
                     rv.setLayoutManager(manager); // View in Recycler View
-                    adapter = new getDirsAdapter(getActivity(),db.RewriteDirsInValues(db.getAllData().getDirs()));
+                    adapter = new getDirsAdapter(getActivity(),db.RewriteDirsInValues(db.getAllDirections().getDirs()));
                     rv.setAdapter(adapter);
                 }
                 @Override
-                public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
+                public void onFailure(Call<getLangsResponse> call, Throwable t) {}
             });
         }
-        else { // if LanguagesSQLite DB is already exists and got all info --> view it in RV immediately
+        else { // if DataBaseSQLite DB is already exists and got all info --> view it in RV immediately
             rv.setLayoutManager(manager); // View in Recycler View
-            adapter = new getDirsAdapter(getActivity(),db.RewriteDirsInValues(db.getAllData().getDirs()));
+            adapter = new getDirsAdapter(getActivity(),db.RewriteDirsInValues(db.getAllDirections().getDirs()));
             rv.setAdapter(adapter);
         }
     }

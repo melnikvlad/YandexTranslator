@@ -7,14 +7,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
-import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.SettingsFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.ViewPagerFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
@@ -60,7 +59,7 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
+                DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
                 SharedPreferences prefs = getPreferences();
                 SharedPreferences.Editor editor = prefs.edit();
                 int id = prefs.getInt(Constants.BTN_CLICKED,-1);

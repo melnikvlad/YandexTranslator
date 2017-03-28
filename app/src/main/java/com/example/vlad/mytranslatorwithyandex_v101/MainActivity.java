@@ -7,23 +7,22 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
-import com.example.vlad.mytranslatorwithyandex_v101.DB.LanguagesSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.LanguagesFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.ViewPagerFragment;
 
 public class MainActivity extends FragmentActivity {
     public static Context contextOfApplication;
-    private LanguagesSQLite db;
+    private DataBaseSQLite db;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         contextOfApplication = getApplicationContext();
-        db = new LanguagesSQLite(getApplication().getApplicationContext());
+        db = new DataBaseSQLite(getApplication().getApplicationContext());
         initView();
     }
 
