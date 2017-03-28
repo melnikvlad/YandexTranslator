@@ -10,8 +10,8 @@ import android.os.Bundle;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.LanguagesFragment;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.ViewPagerFragment;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.Third.LanguagesFragment;
+import com.example.vlad.mytranslatorwithyandex_v101.Fragments.MainScreen;
 
 public class MainActivity extends FragmentActivity {
     public static Context contextOfApplication;
@@ -44,7 +44,7 @@ public class MainActivity extends FragmentActivity {
             editor.apply();
         }
         else {
-            fragment = new ViewPagerFragment();
+            fragment = new MainScreen();
         }
         android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_frame,fragment);
