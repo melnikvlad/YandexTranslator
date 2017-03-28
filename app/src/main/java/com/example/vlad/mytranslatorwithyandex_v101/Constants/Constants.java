@@ -13,5 +13,4 @@ public class Constants {
     public static final String BTN_CLICKED = "btn";
     public static final String TAG = "TAG";
     public static final int TAB_COUNT = 3;
-    public static final String REFRESH = "refresh";
 }

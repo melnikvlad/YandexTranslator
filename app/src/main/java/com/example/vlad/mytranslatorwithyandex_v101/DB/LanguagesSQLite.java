@@ -27,7 +27,6 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         super(context, DB_NAME, null, DB_VERSION);
     }
 
-
     @Override
     public void onCreate(SQLiteDatabase db) {
         String query = "CREATE TABLE "+TABLE_NAME+
@@ -59,8 +58,7 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
             contentValues.put(COL_3, languages.getValues().get(i));
             contentValues.put(COL_4, languages.getDirs().get(i));
             db.insert(TABLE_NAME,null ,contentValues);
-        }
-        Log.d(Constants.TAG,"База наполнена");
+     }
         db.close();
     }
 
@@ -82,6 +80,7 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         Languages languages = new Languages(dirList,keyList,valueList);
         return languages;
     }
+
     public String getKeyByValue(String value) {
         String key ="";
         SQLiteDatabase db = this.getWritableDatabase();
@@ -111,16 +110,15 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
     public List<String> RewriteDirsInValues(List<String> direction){
         String from = "";
         String to = "";
+        String space = "                 ";
         List<String> result = new ArrayList<>();
         String[] splited;
         for (int i = 0;i<direction.size();i++){
             splited = direction.get(i).split("-");
             from = splited[0];
             to = splited[1];
-            result.add(this.getValueByKey(from)+"                 "+this.getValueByKey(to)) ;
-            Log.d(Constants.TAG,"FROM "+direction.get(i).toString()+ " TO "+result.get(i).toString());
+            result.add(this.getValueByKey(from)+space+this.getValueByKey(to)) ;
         }
-
         return result;
     }
 
@@ -136,13 +134,6 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
                 exist = true;
             } while (cursor.moveToNext());
         }
-        if(exist)
-        {
-            Log.d(Constants.TAG,direction + " EXIST");
-        }
-        else {
-            Log.d(Constants.TAG,direction + " NOT EXIST");
-        }
         return exist;
     }
 
@@ -152,17 +143,14 @@ public class LanguagesSQLite extends SQLiteOpenHelper{
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(countQuery, null);
         count = cursor.getCount();
-        Log.d(Constants.TAG,"DB COUNT :"+count);
         cursor.close();
         return count;
     }
 
-    public void deleteAll()
-    {
+    public void deleteAll() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_NAME,null,null);
         db.execSQL("DELETE FROM "+ TABLE_NAME);
-        Log.d(Constants.TAG,"База удалена в адаптере");
         db.close();
     }
 }

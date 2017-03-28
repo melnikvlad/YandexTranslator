@@ -19,9 +19,6 @@ public class getDirsAdapter extends RecyclerView.Adapter<getDirsAdapter.Directio
     private List<String> dirsData;
     private List<String> filterList;
 
-    public getDirsAdapter() {
-    }
-
     public getDirsAdapter(Context mContext, List<String> dirsData) {
         this.mContext = mContext;
         this.dirsData = dirsData;
@@ -31,7 +28,6 @@ public class getDirsAdapter extends RecyclerView.Adapter<getDirsAdapter.Directio
 
     public static class DirectionsViewHolder extends RecyclerView.ViewHolder {
         private TextView dir;
-
         public DirectionsViewHolder(View view) {
             super(view);
             dir = (TextView) view.findViewById(R.id.lang);
@@ -74,8 +70,4 @@ public class getDirsAdapter extends RecyclerView.Adapter<getDirsAdapter.Directio
         }
         notifyDataSetChanged();
     }
-
-
-
-
 }

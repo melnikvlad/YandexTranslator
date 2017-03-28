@@ -21,13 +21,14 @@ import com.example.vlad.mytranslatorwithyandex_v101.R;
 
 public class ViewPagerFragment extends Fragment {
     ViewPager viewPager;
+    TabLayout tabLayout;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         int[] icons = {R.drawable.prof2,R.drawable.hostory, R.drawable.set2};
         View view = inflater.inflate(R.layout.viewpager,container,false);
-        TabLayout tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
+        tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         viewPager = (ViewPager) view.findViewById(R.id.main_tab_content);
 
         viewPager.setAdapter(new ViewPagerAdapter(getChildFragmentManager(),getActivity()));
@@ -42,12 +43,10 @@ public class ViewPagerFragment extends Fragment {
 
     class ViewPagerAdapter extends FragmentStatePagerAdapter {
         Context context;
-
         public ViewPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
             this.context =context;
         }
-
         @Override
         public Fragment getItem(int position) {
             switch (position) {
@@ -60,13 +59,11 @@ public class ViewPagerFragment extends Fragment {
                 case 2:
                    SettingsFragment defaultLanguageFragment = new SettingsFragment();
                     return defaultLanguageFragment;
-
                 default:
                     translateFragment = new TranslateFragment();
                     return translateFragment;
             }
         }
-
         @Override
         public int getCount() {
             return Constants.TAB_COUNT;

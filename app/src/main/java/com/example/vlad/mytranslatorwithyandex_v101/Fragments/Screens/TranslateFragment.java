@@ -11,7 +11,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -26,13 +25,9 @@ import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.AllLanguagesResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Langs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Lookup.LookupResponse;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.Lookup.Tr;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Translate.TranslaterResponse;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -43,11 +38,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.LookupAdapter;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 
 public class TranslateFragment extends Fragment implements View.OnClickListener {
@@ -67,23 +57,22 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
         sharedPreferences = getPreferences();
         View view = inflater.inflate(R.layout.translate_fragment, container, false);
-        btn_translate_from = (Button)view.findViewById(R.id.translate_from);
+        btn_translate_from  = (Button)view.findViewById(R.id.translate_from);
         btn_switch_language = (Button)view.findViewById(R.id.switch_language);
-        btn_translate_to  =(Button)view.findViewById(R.id.translate_to);
-        trans = (TextView)view.findViewById(R.id.translate);
-        def = (TextView)view.findViewById(R.id.def);
-        pos = (TextView)view.findViewById(R.id.pos);
-        input_field = (EditText) view.findViewById(R.id.inputfield);
-        translate = (Button) view.findViewById(R.id.btn_tanslate);
-        rv = (RecyclerView)view.findViewById(R.id.recycler_view);
-        manager = new LinearLayoutManager(getActivity());
+        btn_translate_to    = (Button)view.findViewById(R.id.translate_to);
+        translate           = (Button)view.findViewById(R.id.btn_tanslate);
+        trans               = (TextView)view.findViewById(R.id.translate);
+        def                 = (TextView)view.findViewById(R.id.def);
+        pos                 = (TextView)view.findViewById(R.id.pos);
+        input_field         = (EditText)view.findViewById(R.id.inputfield);
+        rv                  = (RecyclerView)view.findViewById(R.id.recycler_view);
+        manager             = new LinearLayoutManager(getActivity());
 
             getLanguages();
 
         btn_translate_from.setOnClickListener(this);
         btn_switch_language.setOnClickListener(this);
         btn_translate_to.setOnClickListener(this);
-
 
         translate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,16 +90,14 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
         switch (view.getId()){
             case R.id.translate_from:
-                goToSettings(R.id.translate_from);
+                goToLanguages(R.id.translate_from);
                 break;
             case R.id.translate_to:
-                goToSettings(R.id.translate_to);
+                goToLanguages(R.id.translate_to);
                 break;
             case R.id.switch_language:
                 swapLanguages();
-                Log.d(Constants.TAG,"Выбрано при запуске FROM :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
                 btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
-                Log.d(Constants.TAG,"Выбрано при запуске TO :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
                 btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
                 break;
 
@@ -145,12 +132,9 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                 else {
                     Toast.makeText(getActivity(), "Wrong Translate Direction in translate", Toast.LENGTH_LONG).show();
                 }
-
             }
-
             @Override
             public void onFailure(Call<TranslaterResponse> call, Throwable t) {
-                Log.d(Constants.TAG, "translate failure" + t.toString());
             }
         });
 
@@ -169,262 +153,62 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                     rv.setLayoutManager(manager); // View in Recycler View
                     adapter = new LookupAdapter(
                             getActivity().getApplication(),
-                            RV_top_items_row(lookup_response),
-                            RV_bot_items_row(lookup_response));
+                            lookup_response.RV_top_items_row(),
+                            lookup_response.RV_bot_items_row());
                     rv.setAdapter(adapter);
                     //________________________
                     // Definition + Synonyms  |
                     // Meaning                | <-- Single Recycler View Item
                     //________________________|
                 }
-                else
-                {
+                else {
                     rv.setVisibility(View.GONE);
                     def.setVisibility(View.GONE);
                     pos.setVisibility(View.GONE);
                     Toast.makeText(getActivity(), "Wrong Translate Direction in Lookup", Toast.LENGTH_LONG).show();
                 }
-                }
-
+            }
             @Override
             public void onFailure(Call<LookupResponse> call, Throwable t) {
-                Log.d(Constants.TAG, "lookup failure" + t.toString());
             }
         });
-
     }
+
     private void getLanguages() {
         final LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
         sharedPreferences = getPreferences();
-        final SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (db.getLanguagesCount() == 0){
+            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
 
-                Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build();
+            AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
+            final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
 
-                AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
+            CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
+                @Override
+                public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
+                    AllLanguagesResponse languges_response = response.body();
+                    Languages languages = new Languages(
+                            languges_response.getResponseDirs(languges_response),
+                            languges_response.getResponseKeys(languges_response),
+                            languges_response.getResponseValues(languges_response)
+                    );
+                    db.insertData(languages);
 
-                final Call<AllLanguagesResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
-
-                CallToLanguages.enqueue(new Callback<AllLanguagesResponse>() {
-                    @Override
-                    public void onResponse(Call<AllLanguagesResponse> call, Response<AllLanguagesResponse> response) {
-                        AllLanguagesResponse languges_response = response.body();
-
-
-                        Languages languages = new Languages(getResponseDirs(languges_response),getResponseKeys(languges_response),getResponseValues(languges_response));
-
-                        if(db.getLanguagesCount() == 0) {
-                            db.insertData(languages);
-                        }
-                        Log.d(Constants.TAG,"Выбрано при запуске FROM :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
-                        btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
-                        Log.d(Constants.TAG,"Выбрано при запуске TO :"+db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
-                        btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
-                        editor.putInt(Constants.REFRESH,1);
-                        editor.apply();
-                    }
-                    @Override
-                    public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
-                });
-            }
-
+                    btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
+                    btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+                }
+                @Override
+                public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
+            });
+        }
+        else {
+            btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
+            btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+        }
+    }
 //=========================================================================================================================================================
-
-    private List<String> getResponseDirs(AllLanguagesResponse response){
-        List<String> dirs_list = new ArrayList<>();
-        dirs_list = response.getDirs();
-
-        return dirs_list;
-    }
-
-    private List<String> getResponseKeys(AllLanguagesResponse response){
-        List<String> keys_list = new ArrayList<>();
-        Gson gson = new GsonBuilder().create();
-        String json = gson.toJson(response);
-        try {
-            JSONObject jsonObject = new JSONObject(json);
-            JSONObject langsObj = jsonObject.getJSONObject("langs");
-            Iterator<String> iterator = langsObj.keys();
-            while (iterator.hasNext()){
-                String key = iterator.next();
-                keys_list.add(key);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return keys_list;
-    }
-
-    private List<String> getResponseValues(AllLanguagesResponse response){
-        List<String> values_list = new ArrayList<>();
-        Gson gson = new GsonBuilder().create();
-        String json = gson.toJson(response);
-        try {
-            JSONObject jsonObject = new JSONObject(json);
-            JSONObject langsObj = jsonObject.getJSONObject("langs");
-            Iterator<String> iterator = langsObj.keys();
-            while (iterator.hasNext()){
-                String key = iterator.next();
-                String value = langsObj.get(key).toString();
-                values_list.add(value);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return values_list;
-    }
-
-    private int getDefSize(LookupResponse response){ // How many Def[] arrays ?
-        return response.getDef().size();
-    }
-
-    private List<List<Tr>> getTrLists(LookupResponse response){ // Get all Tr[] from every Def[] array
-        List<List<Tr>> list = new ArrayList<>();
-        for(int i=0;i<getDefSize(response);i++){
-            list.add(response.getDef().get(i).getTr());
-        }
-        return list;
-    }
-
-    private int getTrListsSize(List<List<Tr>> lists){ // How many objects in every Tr[] array
-        int size =0;
-        for(int i=0;i<lists.size();i++){
-            size+= lists.get(i).size();
-        }
-        return size;
-    }
-
-    private List<Tr> getTrListsObjects(List<List<Tr>> lists){ // Get all Tr{} objects from every Tr[] array
-        List<Tr> objs = new ArrayList<>();
-        for(int i=0;i<lists.size();i++)
-        {
-            for (int j=0;j<lists.get(i).size();j++)
-            {
-                objs.add(lists.get(i).get(j));
-            }
-        }
-        return objs;
-    }
-
-    private List<Tr> getTranslates(LookupResponse response){  // Get list of all translates
-        int defSize = 0;
-        int trSize = 0;
-        List<List<Tr>> trList = new ArrayList<>();
-        List<Tr> tr_i = new ArrayList<>();
-        List<String> rv_rowTop_i = new ArrayList<>();
-
-        defSize = getDefSize(response);
-        trList = getTrLists(response);
-        trSize = getTrListsSize(trList);
-        tr_i = getTrListsObjects(trList);
-        return tr_i;
-
-    }
-
-    private String listToString(List<String> list){  // Turn list items to single textline
-        String text="";
-        for(int i=0;i<list.size();i++){
-            if(i == list.size()-1){
-                text+=list.get(i).toString();
-            }
-            else
-            {
-                text+=list.get(i).toString()+", ";
-            }
-
-        }
-        return text;
-    }
-
-
-    private List<String> RV_top_items_row(LookupResponse response){// Inflate cardview top row for Recycler View adapter
-
-        List<Tr> tr_i;
-        List<String> rv_rowTop_i = new ArrayList<>();
-        List<String> pos_i = new ArrayList<>();
-        List<String> gen_i = new ArrayList<>();
-        List<String> syn_i = new ArrayList<>();
-        String rowTop="";
-
-        tr_i = getTranslates(response); // All translates
-
-        for (int i=0;i<tr_i.size();i++) { // Loop through all translates
-
-            if(tr_i.get(i).getPos() != null) { // if pos field exists --> add it to  pos list
-                pos_i.add(tr_i.get(i).getPos());
-            }
-            else {
-                pos_i.add(""); // else make it empty
-
-            }
-            if(tr_i.get(i).getGen() != null) {  // if gen field exists --> add it to gen list
-                gen_i.add(tr_i.get(i).getGen());
-            }
-            else {
-                gen_i.add("");  // else make it empty
-            }
-
-            if(tr_i.get(i).getSyn()!= null) { // if syn array exists --> add it to syn list
-
-                for (int j=0;j<tr_i.get(i).getSyn().size();j++){
-                    syn_i.add(tr_i.get(i).getSyn().get(j).getText());
-                }
-            }
-            else {
-
-                syn_i.add("");  // else make it empty
-            }
-            String listtoString = listToString(syn_i);
-            if(!listtoString.isEmpty()){        // Format string
-                rowTop = tr_i.get(i).getText()+", " + listtoString;
-            }
-            else
-            {
-                rowTop = tr_i.get(i).getText();
-            }
-
-            rv_rowTop_i.add(rowTop);// top row would be like : Translate + Synonyms
-            syn_i.clear();
-        }
-
-        return rv_rowTop_i;
-    }
-
-    private List<String> RV_bot_items_row(LookupResponse response){ // Inflate cardview bottom row for Recycler View adapter
-        String rowBot = "";
-        List<Tr> tr_i;
-        List<String> rv_rowBot_i = new ArrayList<>();
-        List<String> mean_i= new ArrayList<>();
-
-
-        tr_i = getTranslates(response); // All translates
-
-        for (int i=0;i<tr_i.size();i++) { // if mean array exists --> add it to mean list
-
-            if(tr_i.get(i).getMean()!= null) {
-                for (int j=0;j<tr_i.get(i).getMean().size();j++){
-                    mean_i.add(tr_i.get(i).getMean().get(j).getText());
-                }
-            }
-            else {
-
-                mean_i.add(""); // else make it empty
-            }
-
-            String listtoString = listToString(mean_i);
-            if(!listtoString.isEmpty()) // Format string
-            {
-                rowBot = "("+listToString(mean_i)+")";
-            }
-            else{
-                rowBot="";
-            }
-            rv_rowBot_i.add(rowBot); // bottom row would be like : Means
-            mean_i.clear();
-        }
-        return rv_rowBot_i;
-    }
 
     private String LanguageQuery(){
         String from =sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
@@ -433,10 +217,6 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     }
 
     private Map<String,String> getTranslateParams() { // Params for Translate retrofit request
-        SharedPreferences sharedPreferences = getPreferences();
-        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
-        String from = sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
-        String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_TRANSLATE);
         params.put("lang", LanguageQuery());
@@ -446,10 +226,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
 
     private Map<String,String> getLookupParams() {  // Params for Lookup retrofit request
         SharedPreferences sharedPreferences = getPreferences();
-        LanguagesSQLite db = new LanguagesSQLite(getActivityContex());
         String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
-        String from =sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
-        String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_LOOKUP);
         params.put("lang",LanguageQuery());
@@ -459,22 +236,16 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     }
 
     private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
-        String ui;
-        LanguagesSQLite db = new LanguagesSQLite(getActivity().getApplicationContext());
-        ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
-
+        String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_TRANSLATE);
         params.put("ui", ui);
         return params;
     }
 
-    private void goToSettings(int id){
-
+    private void goToLanguages(int id){
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
-        Log.d(Constants.TAG,"Выбрана кнопка #"+ id);
-
         if(id == R.id.translate_from){
             editor.putInt(Constants.BTN_CLICKED,1);
             editor.apply();
@@ -483,18 +254,15 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             editor.putInt(Constants.BTN_CLICKED,2);
             editor.apply();
         }
-
-        Log.d(Constants.TAG,"В преференцах лежит:"+prefs.getInt(Constants.BTN_CLICKED,0));
-        Log.d(Constants.TAG,"Переходим на сеттингс:");
         LanguagesFragment fragment = new LanguagesFragment();
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.translate_fragment_frame,fragment);
         ft.commit();
     }
+
     private void  swapLanguages(){
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
-
         String temp ="";
         String to ="";
 
@@ -503,27 +271,15 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         editor.putString(Constants.TRANSLATE_FROM,to);
         editor.putString(Constants.TRANSLATE_TO,temp);
         editor.apply();
-
     }
+
     private Context getActivityContex(){
         Context applicationContext = MainActivity.getContextOfApplication();
         return applicationContext;
     }
+
     private SharedPreferences getPreferences(){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
         return prefs;
     }
-    private  void refresh(){
-        SharedPreferences sharedPreferences = getPreferences();
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(Constants.REFRESH,0);
-        editor.apply();
-        Log.d(Constants.TAG,"Обновить:");
-        TranslateFragment fragment = new TranslateFragment();
-        android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.translate_fragment_frame,fragment);
-        ft.commit();
-    }
 }
-
-

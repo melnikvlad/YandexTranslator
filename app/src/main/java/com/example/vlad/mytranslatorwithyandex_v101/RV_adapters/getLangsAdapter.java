@@ -39,8 +39,6 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
         }
     }
 
-    public getLangsAdapter() {}
-
     public getLangsAdapter(Context mContext, List<String> langData) {
         super();
         this.mContext = mContext;
@@ -66,33 +64,27 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                 SharedPreferences prefs = getPreferences();
                 SharedPreferences.Editor editor = prefs.edit();
                 int id = prefs.getInt(Constants.BTN_CLICKED,-1);
-                Log.d(Constants.TAG,"Ситауция под номером:"+ id);
-
                 switch (id){
                     case 1:
                         editor.putString(Constants.TRANSLATE_FROM,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.apply();
-                        Log.d(Constants.TAG,"Выбрано FROM :"+prefs.getString(Constants.TRANSLATE_FROM,""));
                         goToTranslateFragment();
                         break;
                     case 2:
                         editor.putString(Constants.TRANSLATE_TO,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.apply();
-                        Log.d(Constants.TAG,"Выбрано TO :"+prefs.getString(Constants.TRANSLATE_TO,""));
                         goToTranslateFragment();
                         break;
                     case 3:
                         editor.putString(Constants.DEFAULT_LANGUAGE,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.apply();
                         db.deleteAll();
-                        Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE,""));
                         goToTranslateFragment();
                         break;
                     case 4:
                         editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.apply();
                         db.deleteAll();
-                        Log.d(Constants.TAG,"Выбрано DEFAULT_LANGUAGE :"+prefs.getString(Constants.DEFAULT_LANGUAGE_INTERFACE,""));
                         goToSettingsFragment();
                         break;
                 }
@@ -126,14 +118,12 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
     }
 
     private  void goToSettingsFragment(){
-        Log.d(Constants.TAG,"Переходим на дефолт:");
         SettingsFragment settingsFragment = new SettingsFragment();
         FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.languages_frame,settingsFragment).commit();
         fragmentManager.beginTransaction().addToBackStack(null);
     }
     private  void goToTranslateFragment(){
-        Log.d(Constants.TAG,"Переходим на транслейт:");
         ViewPagerFragment viewPagerFragment = new ViewPagerFragment();
         FragmentManager fragmentManager = ((MainActivity)mContext).getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.languages_frame,viewPagerFragment).commit();
@@ -147,6 +137,5 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
         return prefs;
     }
-
 }
 

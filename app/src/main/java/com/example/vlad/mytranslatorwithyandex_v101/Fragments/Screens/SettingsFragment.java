@@ -90,14 +90,10 @@ public class SettingsFragment extends Fragment {
 
                 Languages languages = new Languages(getResponseDirs(languges_response),getResponseKeys(languges_response),getResponseValues(languges_response));
                 if(db.getLanguagesCount() == 0) {
-                    Log.d(Constants.TAG,"CHECK FOR DIRS :"+ languages.getDirs().toString());
                     db.insertData(languages);
                 }
 
                 selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"")));
-
-                editor.putInt(Constants.REFRESH,1);
-                editor.apply();
             }
             @Override
             public void onFailure(Call<AllLanguagesResponse> call, Throwable t) {}
