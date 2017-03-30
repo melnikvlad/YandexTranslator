@@ -41,6 +41,7 @@ public class MainActivity extends FragmentActivity {
             editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,"en");
             editor.putString(Constants.TRANSLATE_FROM,"en");
             editor.putString(Constants.TRANSLATE_TO,"ru");
+            editor.putString(Constants.LAST_QUERY,"");
             editor.apply();
         }
         else {

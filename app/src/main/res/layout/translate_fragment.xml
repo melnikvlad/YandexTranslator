@@ -97,7 +97,7 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="285dp"
+        android:layout_height="305dp"
         android:background="@android:color/transparent"
         android:scrollbars="vertical"></android.support.v7.widget.RecyclerView>
 
@@ -113,6 +113,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
+            android:gravity="bottom"
             android:text="Переведено сервисом «Яндекс.Переводчик"
             android:textAlignment="center"
             android:textColor="@android:color/background_dark"

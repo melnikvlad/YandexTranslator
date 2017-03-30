@@ -76,7 +76,7 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                         goToTranslateFragment();
                         break;
                     case 3:
-                        editor.putString(Constants.DEFAULT_LANGUAGE,db.getKeyByValue(holder.lang.getText().toString()));
+                        editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.apply();
                         db.deleteAll();
                         goToMainScreenFragment();
@@ -95,26 +95,6 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
     @Override
     public int getItemCount() {
         return (null != filterList ? filterList.size() : 0);
-    }
-
-    // Do Search...
-    public void filter(final String text) {
-        filterList.clear();
-                // If there is no search value, then add all original list items to filter list
-                if (TextUtils.isEmpty(text)) {
-                    filterList.addAll(langData);
-                }
-                else {
-                    // Iterate in the original List and add it to filter list...
-                    for (int i=0;i<langData.size();i++) {
-                        if (langData.get(i).toLowerCase().contains(text.toLowerCase()) ||
-                                langData.get(i).toLowerCase().contains(text.toLowerCase())) {
-                            // Adding Matched items
-                            filterList.add(langData.get(i));
-                        }
-                    }
-                }
-        notifyDataSetChanged();
     }
 
     private  void goToSettingsFragment(){
@@ -142,6 +122,26 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
     private SharedPreferences getPreferences(){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
         return prefs;
+    }
+
+    // Do Search...
+    public void filter(final String text) {
+        filterList.clear();
+        // If there is no search value, then add all original list items to filter list
+        if (TextUtils.isEmpty(text)) {
+            filterList.addAll(langData);
+        }
+        else {
+            // Iterate in the original List and add it to filter list...
+            for (int i=0;i<langData.size();i++) {
+                if (langData.get(i).toLowerCase().contains(text.toLowerCase()) ||
+                        langData.get(i).toLowerCase().contains(text.toLowerCase())) {
+                    // Adding Matched items
+                    filterList.add(langData.get(i));
+                }
+            }
+        }
+        notifyDataSetChanged();
     }
 }
 

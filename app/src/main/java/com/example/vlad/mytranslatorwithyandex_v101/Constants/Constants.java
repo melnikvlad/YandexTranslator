@@ -14,5 +14,7 @@ public class Constants {
     public static final String TAG = "TAG";
     public static final int MAIN_SCR_TAB_COUNT = 3;
     public static final int SECOND_SCR_TAB_COUNT = 2;
+    public static final String LAST_QUERY = "request";
+
 
 }

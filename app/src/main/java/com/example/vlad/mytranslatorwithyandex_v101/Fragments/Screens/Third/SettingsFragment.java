@@ -86,7 +86,7 @@ public class SettingsFragment extends Fragment {
                     );
                     db.insertLanguages(languages);
 
-                    selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"")));
+                    selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_INTERFACE,"")));
                 }
                 @Override
                 public void onFailure(Call<getLangsResponse> call, Throwable t) {}
@@ -116,6 +116,7 @@ public class SettingsFragment extends Fragment {
         ft.replace(R.id.defaultlang_fragment_frame,fragment);
         ft.commit();
     }
+
     private void goToDirectionsFragment(){
 
         DirectionsFragment fragment = new DirectionsFragment();
