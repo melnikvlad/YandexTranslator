@@ -87,8 +87,9 @@ public class DirectionsFragment extends Fragment {
                 @Override
                 public void onResponse(Call<getLangsResponse> call, Response<getLangsResponse> response) {
                     getLangsResponse serverResponse = response.body();
+
                     Directions directions = new Directions(serverResponse.getResponseDirs(serverResponse));
-                    Log.d(Constants.TAG,"DIRS COUNT : "+ directions.getDirs().size());
+                    Log.d(Constants.TAG,"DIRECTIONS DIRS COUNT : "+ directions.getDirs().size());
                     db.insertDirections(directions);
 
                     rv.setLayoutManager(manager); // View in Recycler View

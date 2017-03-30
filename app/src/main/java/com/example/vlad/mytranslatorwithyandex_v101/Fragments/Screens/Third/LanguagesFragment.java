@@ -101,8 +101,10 @@ public class LanguagesFragment extends Fragment{
                            serverResponse.getResponseValues(serverResponse)
                    );
                    db.insertLanguages(languages);
+                   Log.d(Constants.TAG,"LANGUAGES LANG COUNT : "+ languages.getKeys().size());
+
                    Directions directions = new Directions(serverResponse.getResponseDirs(serverResponse));
-                   Log.d(Constants.TAG,"DIRS COUNT : "+ directions.getDirs().size());
+                   Log.d(Constants.TAG,"LANGUAGES DIRS COUNT : "+ directions.getDirs().size());
                    db.insertDirections(directions);
 
                    rv.setLayoutManager(manager); // View in Recycler View

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,6 +86,7 @@ public class SettingsFragment extends Fragment {
                             serverResponse.getResponseValues(serverResponse)
                     );
                     db.insertLanguages(languages);
+                    Log.d(Constants.TAG,"SETTINGS LANG COUNT : "+ languages.getKeys().size());
 
                     selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_INTERFACE,"")));
                 }

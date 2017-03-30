@@ -43,7 +43,7 @@ public class HistoryFragment extends Fragment {
         db                  = new DataBaseSQLite(getActivity().getApplicationContext());
 
 
-        Log.d(Constants.TAG,"DATA : "+db.getHistoryWords()+db.getHistoryTranslates()+db.getHistoryDirs());
+        Log.d(Constants.TAG,"HISTORY DATA : "+db.getHistoryWords()+db.getHistoryTranslates()+db.getHistoryDirs());
 
         rv.setLayoutManager(manager); // View in Recycler View
         adapter = new HistoryAdapter(getActivity(),db.getHistoryWords(),db.getHistoryTranslates(),db.getHistoryDirs());
