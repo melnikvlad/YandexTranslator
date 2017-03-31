@@ -76,15 +76,16 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                         goToTranslateFragment();
                         break;
                     case 3:
+                        editor.putString(Constants.DEFAULT_LANGUAGE_UI,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.apply();
-                        db.deleteAll();
+                        db.deleteLanguageAndDirectionTables();
                         goToMainScreenFragment();
                         break;
                     case 4:
-                        editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,db.getKeyByValue(holder.lang.getText().toString()));
+                        editor.putString(Constants.DEFAULT_LANGUAGE_UI,db.getKeyByValue(holder.lang.getText().toString()));
                         editor.apply();
-                        db.deleteAll();
+                        db.deleteLanguageAndDirectionTables();
                         goToSettingsFragment();
                         break;
                 }

@@ -15,8 +15,6 @@ import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.FavouriteAdapter;
-import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.HistoryAdapter;
-import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getLangsAdapter;
 
 public class FavouriteFragment extends Fragment {
     private SearchView searchView;
@@ -27,17 +25,19 @@ public class FavouriteFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.history_fragment, container, false);
+        View view = inflater.inflate(R.layout.favourite_fragment, container, false);
         searchView          = (SearchView)view.findViewById(R.id.serchview_settings);
         rv                  = (RecyclerView)view.findViewById(R.id.recycler);
         manager             = new LinearLayoutManager(getActivity());
         db                  = new DataBaseSQLite(getActivity().getApplicationContext());
 
-
-        Log.d(Constants.TAG,"FavouriteDetail DATA : "+db.getFavouriteWords()+db.getFavouriteTranslates()+db.getFavouriteDirs());
-
-        rv.setLayoutManager(manager); // View in Recycler View
-        adapter = new FavouriteAdapter(getActivity(),db.getFavouriteWords(), db.getHistoryTranslates(),db.getFavouriteDirs());
+        rv.setLayoutManager(manager);
+        adapter = new FavouriteAdapter(
+                getActivity(),
+                db.getWordsFromFavouriteTable(),
+                db.getTranslatesFromFavouriteTable(),
+                db.getDirsFromFavouriteTable()
+        );
         adapter.notifyDataSetChanged();
         rv.setAdapter(adapter);
 
@@ -53,7 +53,6 @@ public class FavouriteFragment extends Fragment {
                 return true;
             }
         });
-
         return view;
     }
     public void setupSearchView() {

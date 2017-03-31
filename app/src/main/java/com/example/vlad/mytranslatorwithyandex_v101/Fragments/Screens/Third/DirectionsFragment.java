@@ -9,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,12 +16,14 @@ import android.widget.Button;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
-import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
+import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Directions;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Translator_getLangsResponse.Directions.DirsResponse;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Translator_getLangsResponse.getLangsResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getDirsAdapter;
+
 import java.util.HashMap;
 import java.util.Map;
 import retrofit2.Call;
@@ -74,37 +75,39 @@ public class DirectionsFragment extends Fragment {
 
     private void getDirections() {
         sharedPreferences = getPreferences();
-        if((db.getDirectionsCount()== 0)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
-
+        if((db.getLanguagesCount()== 0)) {
             Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
-            AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
-            final Call<getLangsResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
+            LanguagesService lang_service = retrofitLNG.create(LanguagesService.class); // Translate service
+
+            final Call<getLangsResponse> CallToLanguages = lang_service.getLangs(getLanguagesParams());
 
             CallToLanguages.enqueue(new Callback<getLangsResponse>() {
                 @Override
                 public void onResponse(Call<getLangsResponse> call, Response<getLangsResponse> response) {
                     getLangsResponse serverResponse = response.body();
-
-                    Directions directions = new Directions(serverResponse.getResponseDirs(serverResponse));
-                    Log.d(Constants.TAG,"DIRECTIONS DIRS COUNT : "+ directions.getDirs().size());
+                    Directions directions = new Directions(
+                        serverResponse.getResponseDirs(serverResponse)
+                    );
                     db.insertDirections(directions);
 
                     rv.setLayoutManager(manager); // View in Recycler View
-                    adapter = new getDirsAdapter(getActivity(),db.RewriteDirsInValues(db.getAllDirections().getDirs()));
+                    adapter = new getDirsAdapter(getActivity(),db.RewriteDirsToValuesInDirectionsTable(db.getDirectionsFromDirectionsTable().getDirs()));
                     rv.setAdapter(adapter);
                 }
+
                 @Override
-                public void onFailure(Call<getLangsResponse> call, Throwable t) {}
+                public void onFailure(Call<getLangsResponse> call, Throwable t) {
+                }
             });
         }
-        else { // if DataBaseSQLite DB is already exists and got all info --> view it in RV immediately
-            rv.setLayoutManager(manager); // View in Recycler View
-            adapter = new getDirsAdapter(getActivity(),db.RewriteDirsInValues(db.getAllDirections().getDirs()));
-            rv.setAdapter(adapter);
-        }
+       else { // if DataBaseSQLite DB is already exists and got all info --> view it in RV immediately
+           rv.setLayoutManager(manager); // View in Recycler View
+           adapter = new getDirsAdapter(getActivity(),db.RewriteDirsToValuesInDirectionsTable(db.getDirectionsFromDirectionsTable().getDirs()));
+           rv.setAdapter(adapter);
+       }
     }
 
     private void setupSearchView() {
@@ -114,10 +117,8 @@ public class DirectionsFragment extends Fragment {
     }
 
     private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
-        String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
         Map<String, String> params = new HashMap<>();
-        params.put("key", Constants.API_KEY_TRANSLATE);
-        params.put("ui", ui);
+        params.put("key", Constants.API_KEY_LOOKUP);
         return params;
     }
 

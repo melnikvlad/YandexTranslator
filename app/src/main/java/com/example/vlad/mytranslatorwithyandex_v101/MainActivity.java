@@ -37,7 +37,7 @@ public class MainActivity extends FragmentActivity {
         if(db.getLanguagesCount() == 0){
             fragment = new LanguagesFragment();
             editor.putInt(Constants.BTN_CLICKED,3);
-            editor.putString(Constants.DEFAULT_LANGUAGE,"en");
+            editor.putString(Constants.DEFAULT_LANGUAGE_UI,"en");
             editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,"en");
             editor.putString(Constants.TRANSLATE_FROM,"en");
             editor.putString(Constants.TRANSLATE_TO,"ru");

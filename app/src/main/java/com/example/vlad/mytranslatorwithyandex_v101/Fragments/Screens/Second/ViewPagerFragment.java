@@ -19,6 +19,7 @@ public class ViewPagerFragment extends Fragment {
     ViewPager viewPager;
     TabLayout tabLayout;
     HistoryFragment historyFragment;
+    FavouriteFragment favouriteFragment;
 
     @Nullable
     @Override
@@ -26,7 +27,6 @@ public class ViewPagerFragment extends Fragment {
         View view = inflater.inflate(R.layout.inner_viewpager,container,false);
         tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         viewPager = (ViewPager) view.findViewById(R.id.main_tab_content);
-
         viewPager.setAdapter(new ViewPagerAdapter(getChildFragmentManager(),getActivity()));
         tabLayout.setupWithViewPager(viewPager);
         return view;
@@ -34,12 +34,11 @@ public class ViewPagerFragment extends Fragment {
 
     class ViewPagerAdapter extends FragmentStatePagerAdapter{
         Context context;
-        private String fragments []  = {"История","Избранное"};
+        private String fragments [] = {"История","Избранное"};
         public ViewPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
             this.context = context;
         }
-
         @Override
         public Fragment getItem(int position) {
             switch (position) {
@@ -47,7 +46,7 @@ public class ViewPagerFragment extends Fragment {
                     historyFragment = new HistoryFragment();
                     return historyFragment;
                 case 1:
-                    FavouriteFragment favouriteFragment = new FavouriteFragment();
+                    favouriteFragment = new FavouriteFragment();
                     return favouriteFragment;
                 default:
                     return null;

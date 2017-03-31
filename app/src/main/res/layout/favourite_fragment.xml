@@ -18,7 +18,7 @@
         </android.support.v7.widget.SearchView>
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view_setings"
+            android:id="@+id/recycler"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/cardview_light_background"

@@ -17,11 +17,10 @@ import android.widget.Button;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.First.TranslateFragment;
-import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.AllLanguagesService;
+import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
-import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.ServerResponse.getLangsResponse;
+import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Translator_getLangsResponse.getLangsResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getLangsAdapter;
 
@@ -87,8 +86,8 @@ public class SelectTranslateLanguageFragment extends Fragment{
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
-            AllLanguagesService lang_service = retrofitLNG.create(AllLanguagesService.class); // Translate service
-            final Call<getLangsResponse> CallToLanguages = lang_service.makeAllLanguagesRequest(getLanguagesParams());
+            LanguagesService lang_service = retrofitLNG.create(LanguagesService.class); // Translate service
+            final Call<getLangsResponse> CallToLanguages = lang_service.getLangs(getLanguagesParams());
 
             CallToLanguages.enqueue(new Callback<getLangsResponse>() {
                 @Override
@@ -102,7 +101,7 @@ public class SelectTranslateLanguageFragment extends Fragment{
                     db.insertLanguages(languages);
 
                     rv.setLayoutManager(manager); // View in Recycler View
-                    adapter = new getLangsAdapter(getActivity(),db.getAllLanguages().getValues());
+                    adapter = new getLangsAdapter(getActivity(),db.getKeysAndValuesFromLanguagesTable().getValues());
                     rv.setAdapter(adapter);
                 }
                 @Override
@@ -112,7 +111,7 @@ public class SelectTranslateLanguageFragment extends Fragment{
         }
         else { // if DataBaseSQLite DB is already exists and got all info --> view it in RV immediately
             rv.setLayoutManager(manager); // View in Recycler View
-            adapter = new getLangsAdapter(getActivity(),db.getAllLanguages().getValues());
+            adapter = new getLangsAdapter(getActivity(),db.getKeysAndValuesFromLanguagesTable().getValues());
             rv.setAdapter(adapter);
         }
     }
@@ -124,7 +123,7 @@ public class SelectTranslateLanguageFragment extends Fragment{
     }
 
     private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
-        String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE,"");
+        String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_UI,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_TRANSLATE);
         params.put("ui", ui);
