@@ -34,7 +34,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SettingsFragment extends Fragment {
     TextView selected_lang;
-    Button select_lang,view_list_of_dirs;
+    Button select_lang,view_list_of_dirs,getView_list_of_dirs2;
     SharedPreferences sharedPreferences;
     @Nullable
     @Override
@@ -44,6 +44,7 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.settings_fragment,container,false);
         select_lang = (Button) view.findViewById(R.id.select_language);
         view_list_of_dirs = (Button) view.findViewById(R.id.view_list_of_dirs);
+        getView_list_of_dirs2 = (Button)view.findViewById(R.id.view_list_of_dirs2);
         selected_lang = (TextView)view.findViewById(R.id.selected_lang);
 
         getLanguages();
@@ -58,6 +59,12 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 goToDirectionsFragment();
+            }
+        });
+        getView_list_of_dirs2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToDirectionsFragment2();
             }
         });
         return view;
@@ -124,7 +131,14 @@ public class SettingsFragment extends Fragment {
 
     private void goToDirectionsFragment(){
 
-        DirectionsFragment fragment = new DirectionsFragment();
+        DirectionsFragment_Translator fragment = new DirectionsFragment_Translator();
+        android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.defaultlang_fragment_frame,fragment);
+        ft.commit();
+    }
+    private void goToDirectionsFragment2(){
+
+        DirectionsFragment_Dictionary fragment = new DirectionsFragment_Dictionary();
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.defaultlang_fragment_frame,fragment);
         ft.commit();
