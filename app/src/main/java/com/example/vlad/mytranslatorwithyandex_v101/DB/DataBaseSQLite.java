@@ -421,6 +421,18 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return count;
     }
 
+    public int ExistInFavouriteTable(String word, String dir){
+        int count = 0;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + FAVOURITE_TABLE_NAME + " WHERE WORD=? AND DIRECTION=?", new String[]{word + "",dir + ""});
+        if (cursor.moveToFirst()) {
+            do {
+                count+=1;
+            } while (cursor.moveToNext());
+        }
+        return count;
+    }
+
     public List<String> getTop_Row_by_word(String word){
         List<String> list = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
