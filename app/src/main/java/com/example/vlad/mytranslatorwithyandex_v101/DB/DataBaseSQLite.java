@@ -20,11 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataBaseSQLite extends SQLiteOpenHelper{
-    public final static int DB_VERSION = 9;
+    public final static int DB_VERSION = 11;
     public final static String DB_NAME = "YandexTranslatorDB";
 
     public final static String LANG_TABLE_NAME = "Languages";
-    public final static String DIRS_TABLE_NAME = "Directions";
+    public final static String DIRS_TRANSLATOR_TABLE_NAME = "Directions";
+    public final static String DIRS_DICTIONARY_TABLE_NAME = "Directionsdictionary";
     public final static String HISTORY_TABLE_NAME = "History";
     public final static String FAVOURITE_TABLE_NAME = "Favourite";
     public final static String FAVOURITE_DETAIL_TABLE_NAME = "FavouriteDetail";
@@ -52,15 +53,15 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
     public final static String FAVOURITE_BOT_ROW = "BOT";
     public final static String FAVOURITE_TRANSLATE_DIRECTION = "DIRECTION";
 
-
-
-
     //=============================================== CREATE =================================================================
     String LanguagesTable = "CREATE TABLE "+ LANG_TABLE_NAME +
             " ("+ ID +" INTEGER PRIMARY KEY, " +
             LANG_KEYS +" TEXT," +
             LANG_VALUES +" TEXT"+")";
-    String DirectionsTable = "CREATE TABLE "+ DIRS_TABLE_NAME +
+    String DirectionsTable = "CREATE TABLE "+ DIRS_TRANSLATOR_TABLE_NAME +
+            " ("+ ID +" INTEGER PRIMARY KEY, " +
+            DIRS_VALUES +" TEXT"+")";
+    String DirectionsDictionaryTable = "CREATE TABLE "+ DIRS_DICTIONARY_TABLE_NAME +
             " ("+ ID +" INTEGER PRIMARY KEY, " +
             DIRS_VALUES +" TEXT"+")";
     String HistoryTable = "CREATE TABLE "+ HISTORY_TABLE_NAME +
@@ -97,6 +98,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
 
         db.execSQL(LanguagesTable);
         db.execSQL(DirectionsTable);
+        db.execSQL(DirectionsDictionaryTable);
         db.execSQL(HistoryTable);
         db.execSQL(FavouriteTable);
         db.execSQL(LookupTable);
@@ -106,7 +108,8 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
         db.execSQL("DROP TABLE IF EXISTS "+ LANG_TABLE_NAME);
-        db.execSQL("DROP TABLE IF EXISTS "+ DIRS_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS "+ DIRS_TRANSLATOR_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS "+ DIRS_DICTIONARY_TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS "+ HISTORY_TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS "+ FAVOURITE_TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS "+ FAVOURITE_DETAIL_TABLE_NAME);
@@ -139,7 +142,17 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
 
         for (int i = 0;i< directions.getDirs().size();i++){
             contentValues.put(DIRS_VALUES, directions.getDirs().get(i));
-            db.insert(DIRS_TABLE_NAME,null ,contentValues);
+            db.insert(DIRS_TRANSLATOR_TABLE_NAME,null ,contentValues);
+        }
+        db.close();
+    }
+    public void insertDictionaryDirections(Directions directions) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+
+        for (int i = 0;i< directions.getDirs().size();i++){
+            contentValues.put(DIRS_VALUES, directions.getDirs().get(i));
+            db.insert(DIRS_DICTIONARY_TABLE_NAME,null ,contentValues);
         }
         db.close();
     }
@@ -216,7 +229,21 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
 
     public Directions getDirectionsFromDirectionsTable() {
         List<String> dirList = new ArrayList<String>();
-        String selectQuery = "SELECT DIRECTIONS FROM " + DIRS_TABLE_NAME;
+        String selectQuery = "SELECT DIRECTIONS FROM " + DIRS_TRANSLATOR_TABLE_NAME;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery,null);
+        if (cursor.moveToFirst()) {
+            do {
+                dirList.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+        Directions directions = new Directions(dirList);
+        return directions;
+    }
+    public Directions getDictionaryDirectionsFromDirectionsTable() {
+        List<String> dirList = new ArrayList<String>();
+        String selectQuery = "SELECT DIRECTIONS FROM " + DIRS_DICTIONARY_TABLE_NAME;
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery,null);
@@ -444,6 +471,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return list;
     }
 
+
     //=======================================================================================================================
     //=============================================== COUNT =================================================================
     public int getLanguagesCount() {
@@ -456,9 +484,9 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return count;
     }
 
-    public int getDirectionsCount() {
+    public int getDictoinaryDirectionsCount() {
         int count = 0;
-        String countQuery = "SELECT  * FROM " + DIRS_TABLE_NAME;
+        String countQuery = "SELECT  * FROM " + DIRS_DICTIONARY_TABLE_NAME;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(countQuery, null);
         count = cursor.getCount();
@@ -522,7 +550,19 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
     public boolean TranslateDirectionExistInDirectionsTable(String direction){ // Example en-hi exist in directions or not
         boolean exist = false;
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT DIRECTIONS FROM " + DIRS_TABLE_NAME + " WHERE DIRECTIONS=?", new String[]{direction + ""});
+        Cursor cursor = db.rawQuery("SELECT DIRECTIONS FROM " + DIRS_TRANSLATOR_TABLE_NAME + " WHERE DIRECTIONS=?", new String[]{direction + ""});
+
+        if (cursor.moveToFirst()) {
+            do {
+                exist = true;
+            } while (cursor.moveToNext());
+        }
+        return exist;
+    }
+    public boolean TranslateDirectionExistInDictionaryDirectionsTable(String direction){ // Example en-hi exist in directions or not
+        boolean exist = false;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT DIRECTIONS FROM " + DIRS_DICTIONARY_TABLE_NAME + " WHERE DIRECTIONS=?", new String[]{direction + ""});
 
         if (cursor.moveToFirst()) {
             do {
@@ -537,8 +577,10 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(LANG_TABLE_NAME,null,null);
         db.execSQL("DELETE FROM "+ LANG_TABLE_NAME);
-        db.delete(DIRS_TABLE_NAME,null,null);
-        db.execSQL("DELETE FROM "+ DIRS_TABLE_NAME);
+        db.delete(DIRS_TRANSLATOR_TABLE_NAME,null,null);
+        db.execSQL("DELETE FROM "+ DIRS_TRANSLATOR_TABLE_NAME);
+        db.delete(DIRS_DICTIONARY_TABLE_NAME,null,null);
+        db.execSQL("DELETE FROM "+ DIRS_DICTIONARY_TABLE_NAME);
         db.close();
     }
 

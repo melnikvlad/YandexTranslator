@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.DirectionsService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LookupService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.TranslateService;
@@ -33,7 +34,9 @@ import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Lookup.LookupResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.Translate.TranslaterResponse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -44,6 +47,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.LookupAdapter;
+import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getDirsAdapter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 
 public class TranslateFragment extends Fragment implements View.OnClickListener {
@@ -90,6 +99,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         rv.setAdapter(adapter);
 
             getLanguages();
+            getDirections();
 
         btn_translate_from.setOnClickListener(this);
         btn_switch_language.setOnClickListener(this);
@@ -121,16 +131,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                         db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_QUERY,"")),
                         LanguageQuery()
                 );
-                Log.d(Constants.TAG,"DETAIL TRANSLATE "+
-                        favourite_detail.getWord()+" "+
-                    favourite_detail.getTranslate()+" "+
-                    favourite_detail.getPos()+" "+
-                    favourite_detail.getTop_row()+" "+favourite_detail.getBot_row());
                 db.insertFavouriteDetail(favourite_detail);
-                Log.d(Constants.TAG,"DETAIL DB "+
-                        db.getWordsFromFavouriteTable()+" "+
-                       db.getTranslatesFromFavouriteTable()+" "+
-                      db.getTop_RowFromDetailTable(sharedPreferences.getString(Constants.LAST_QUERY,"")));
 
                 Toast.makeText(getActivityContex(), "Added to favourite", Toast.LENGTH_LONG).show();
             }
@@ -180,7 +181,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
 
                 LookupResponse lookup_response = response.body();  // Lookup response
                 Log.d(Constants.TAG,"QUERY LOOKUP "+ LanguageQuery());
-                if(db.TranslateDirectionExistInDirectionsTable(LanguageQuery())){ //if Lookup method cant find any sugestions to request text,then need to hide fields to  error messages
+                if(db.TranslateDirectionExistInDictionaryDirectionsTable(LanguageQuery())){ //if Lookup method cant find any sugestions to request text,then need to hide fields to  error messages
                     rv.setVisibility(View.VISIBLE);
                     def.setVisibility(View.VISIBLE);
                     pos.setVisibility(View.VISIBLE);
@@ -249,7 +250,6 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                     trans.setText(translate_response.getText().toString().substring(1, translate_response.getText().toString().length() - 1));
                 }
                 else {
-                    Log.d(Constants.TAG,"Wrong Translate Direction in translate");
                     Toast.makeText(getActivity(), "Wrong Translate Direction in translate", Toast.LENGTH_LONG).show();
                 }
             }
@@ -262,7 +262,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     private void getLanguages() {
         final DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
         sharedPreferences = getPreferences();
-        if (db.getLanguagesCount() == 0 ||db.getLanguagesCount()==0){
+        if (db.getLanguagesCount() == 0 ){
             Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
@@ -297,12 +297,54 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
         }
     }
+    private void getDirections() {
+        sharedPreferences = getPreferences();
+        if((db.getDictoinaryDirectionsCount()== 0)) {
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)  //  Translate
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            DirectionsService service = retrofit.create(DirectionsService.class); // Translate service
+            final Call<List<String>> CallForDirs = service.getDirs(getParams());
+
+            CallForDirs.enqueue(new Callback<List<String>>() {
+                @Override
+                public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+                    List<String> serverResponse = response.body();
+                    Directions directions = new Directions(
+                            ArrayToList(serverResponse)
+                    );
+                    db.insertDictionaryDirections(directions);
+                }
+                @Override
+                public void onFailure(Call<List<String>> call, Throwable t) {
+                    Log.d(Constants.TAG,t.getMessage().toString());
+                }
+            });
+        }
+    }
 //=========================================================================================================================================================
 
     private String LanguageQuery(){
         String from = sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
         String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
         return from+"-"+to;
+    }
+
+    public List<String> ArrayToList(List<String> response){
+        List<String> list = new ArrayList<>();
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(response);
+
+        try {
+            JSONArray jsonArr = new JSONArray(json);
+            for(int i = 0;i< jsonArr.length();i++){
+                list.add(jsonArr.get(i).toString());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     private Map<String,String> getTranslateParams() { // Params for Translate retrofit request
@@ -331,7 +373,13 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         params.put("ui", ui);
         return params;
     }
-
+    private Map<String, String> getParams(){ // Params for Translate retrofit request
+        String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_UI,"");
+        Map<String, String> params = new HashMap<>();
+        params.put("key", Constants.API_KEY_LOOKUP);
+        params.put("ui", ui);
+        return params;
+    }
     private void goToLanguages(int id){
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();

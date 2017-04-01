@@ -113,7 +113,7 @@ public class DirectionsFragment_Translator extends Fragment {
     private void setupSearchView() {
         searchView.setIconifiedByDefault(false);
         searchView.setSubmitButtonEnabled(false);
-        searchView.setQueryHint("Поиск");
+        searchView.setQueryHint("Поиск напралений");
     }
 
     private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request

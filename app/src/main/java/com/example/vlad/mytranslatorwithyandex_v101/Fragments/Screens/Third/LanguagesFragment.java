@@ -17,6 +17,7 @@ import android.widget.Button;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
+import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.DirectionsService;
 import com.example.vlad.mytranslatorwithyandex_v101.Interfaces.LanguagesService;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Directions;
@@ -25,7 +26,15 @@ import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getLangsAdapter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -57,6 +66,7 @@ public class LanguagesFragment extends Fragment{
             back_to_settings.setVisibility(View.GONE);
         }
         getLanguages();
+        getDirections();
 
         setupSearchView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -120,10 +130,55 @@ public class LanguagesFragment extends Fragment{
        }
     }
 
+    public void getDirections() {
+        final DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
+        sharedPreferences = getPreferences();
+        if ((db.getDictoinaryDirectionsCount() == 0)) {
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)  //  Translate
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            DirectionsService service = retrofit.create(DirectionsService.class); // Translate service
+            final Call<List<String>> CallForDirs = service.getDirs(getLanguagesParams());
+
+            CallForDirs.enqueue(new Callback<List<String>>() {
+                @Override
+                public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+                    List<String> serverResponse = response.body();
+                    Directions directions = new Directions(
+                            ArrayToList(serverResponse)
+                    );
+                    db.insertDictionaryDirections(directions);
+                }
+
+                @Override
+                public void onFailure(Call<List<String>> call, Throwable t) {
+                    Log.d(Constants.TAG, t.getMessage().toString());
+                }
+            });
+        }
+    }
+
     public void setupSearchView() {
         searchView.setIconifiedByDefault(false);
         searchView.setSubmitButtonEnabled(false);
         searchView.setQueryHint("Поиск");
+    }
+
+    public List<String> ArrayToList(List<String> response){
+        List<String> list = new ArrayList<>();
+        Gson gson = new GsonBuilder().create();
+        String json = gson.toJson(response);
+
+        try {
+            JSONArray jsonArr = new JSONArray(json);
+            for(int i = 0;i< jsonArr.length();i++){
+                list.add(jsonArr.get(i).toString());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
@@ -132,6 +187,13 @@ public class LanguagesFragment extends Fragment{
             params.put("key", Constants.API_KEY_TRANSLATE);
             params.put("ui", ui);
             return params;
+    }
+    private Map<String, String> getParams(){ // Params for Translate retrofit request
+        String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_UI,"");
+        Map<String, String> params = new HashMap<>();
+        params.put("key", Constants.API_KEY_LOOKUP);
+        params.put("ui", ui);
+        return params;
     }
 
     private void goToSettingsFragment(){

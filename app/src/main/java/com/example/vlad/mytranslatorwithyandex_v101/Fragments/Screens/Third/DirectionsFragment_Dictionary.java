@@ -83,13 +83,12 @@ public class DirectionsFragment_Dictionary extends Fragment{
 
     private void getDirections() {
         sharedPreferences = getPreferences();
-//        if((db.getLanguagesCount()== 0)) {
+            if((db.getDictoinaryDirectionsCount()== 0)) {
             Retrofit retrofit = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)  //  Translate
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
             DirectionsService service = retrofit.create(DirectionsService.class); // Translate service
-
             final Call<List<String>> CallForDirs = service.getDirs(getParams());
 
             CallForDirs.enqueue(new Callback<List<String>>() {
@@ -99,10 +98,12 @@ public class DirectionsFragment_Dictionary extends Fragment{
                     Directions directions = new Directions(
                             ArrayToList(serverResponse)
                     );
-                   // db.insertDirections(directions);
+                   db.insertDictionaryDirections(directions);
 
                     rv.setLayoutManager(manager); // View in Recycler View
-                    adapter = new getDirsAdapter(getActivity(),db.RewriteDirsToValuesInDirectionsTable(directions.getDirs()));
+                    adapter = new getDirsAdapter(getActivity(),
+                            db.RewriteDirsToValuesInDirectionsTable(db.getDictionaryDirectionsFromDirectionsTable().getDirs())
+                    );
                     rv.setAdapter(adapter);
                 }
                 @Override
@@ -110,13 +111,16 @@ public class DirectionsFragment_Dictionary extends Fragment{
                     Log.d(Constants.TAG,t.getMessage().toString());
                 }
             });
-//        }
-//        else { // if DataBaseSQLite DB is already exists and got all info --> view it in RV immediately
-//            rv.setLayoutManager(manager); // View in Recycler View
-//            adapter = new getDirsAdapter(getActivity(),db.RewriteDirsToValuesInDirectionsTable(db.getDirectionsFromDirectionsTable().getDirs()));
-//            rv.setAdapter(adapter);
-//        }
+        }
+        else {
+            rv.setLayoutManager(manager); // View in Recycler View
+            adapter = new getDirsAdapter(getActivity(),
+                    db.RewriteDirsToValuesInDirectionsTable(db.getDictionaryDirectionsFromDirectionsTable().getDirs())
+            );
+            rv.setAdapter(adapter);
+        }
     }
+
     public List<String> ArrayToList(List<String> response){
         List<String> list = new ArrayList<>();
         Gson gson = new GsonBuilder().create();
@@ -132,10 +136,11 @@ public class DirectionsFragment_Dictionary extends Fragment{
         }
         return list;
     }
+
     private void setupSearchView() {
         searchView.setIconifiedByDefault(false);
         searchView.setSubmitButtonEnabled(false);
-        searchView.setQueryHint("Поиск");
+        searchView.setQueryHint("Поиск напралений");
     }
 
     private Map<String, String> getParams(){ // Params for Translate retrofit request
