@@ -36,12 +36,12 @@ public class MainActivity extends FragmentActivity {
         Fragment fragment;
         if(db.getLanguagesCount() == 0){
             fragment = new LanguagesFragment();
-            editor.putInt(Constants.BTN_CLICKED,3);
+            editor.putInt(Constants.ID_OF_ACTION,3);
             editor.putString(Constants.DEFAULT_LANGUAGE_UI,"en");
             editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,"en");
             editor.putString(Constants.TRANSLATE_FROM,"en");
             editor.putString(Constants.TRANSLATE_TO,"ru");
-            editor.putString(Constants.LAST_QUERY,"");
+            editor.putString(Constants.LAST_ACTION,"");
             editor.apply();
         }
         else {

@@ -91,8 +91,7 @@ public class LanguagesFragment extends Fragment{
 
     public void getLanguages() {
         sharedPreferences = getPreferences();
-       if((db.getLanguagesCount()== 0)){ // if LanguageSQLite DB is empty --> load data from server --> insert it in SQLite -->view DB in RV
-
+       if((db.getLanguagesCount()== 0)){
            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
                    .addConverterFactory(GsonConverterFactory.create())
                    .build();
@@ -111,7 +110,6 @@ public class LanguagesFragment extends Fragment{
                    );
                    db.insertLanguages(languages);
                    Directions directions = new Directions(serverResponse.getResponseDirs(serverResponse));
-                   Log.d(Constants.TAG,"DIRECTIONS DIRS COUNT : "+ directions.getDirs().size());
                    db.insertDirections(directions);
 
                    rv.setLayoutManager(manager); // View in Recycler View
@@ -123,7 +121,7 @@ public class LanguagesFragment extends Fragment{
                }
            });
        }
-       else { // if DataBaseSQLite DB is already exists and got all info --> view it in RV immediately
+       else {
            rv.setLayoutManager(manager); // View in Recycler View
            adapter = new getLangsAdapter(getActivity(),db.getKeysAndValuesFromLanguagesTable().getValues());
            rv.setAdapter(adapter);

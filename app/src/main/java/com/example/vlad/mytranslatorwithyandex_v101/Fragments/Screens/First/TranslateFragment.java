@@ -8,12 +8,12 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +47,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.LookupAdapter;
-import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getDirsAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -56,10 +55,11 @@ import org.json.JSONException;
 
 
 public class TranslateFragment extends Fragment implements View.OnClickListener {
-    private TextView trans,def,pos;
+    private LinearLayout error_container;
+    private TextView trans, def, pos, error_mesage;
     private EditText input_field;
-    private Button translate,btn_translate_from,btn_switch_language,btn_translate_to,btn_add_to_favourite;
-    private String text ="" ;
+    private Button translate, btn_translate_from, btn_switch_language, btn_translate_to, btn_add_to_favourite;
+    private String text = "";
     private RecyclerView rv;
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager manager;
@@ -72,69 +72,78 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         db = new DataBaseSQLite(getActivityContex());
         sharedPreferences = getPreferences();
         View view = inflater.inflate(R.layout.translate_fragment, container, false);
-        btn_translate_from  = (Button)view.findViewById(R.id.translate_from);
-        btn_switch_language = (Button)view.findViewById(R.id.switch_language);
-        btn_translate_to    = (Button)view.findViewById(R.id.translate_to);
-        translate           = (Button)view.findViewById(R.id.btn_tanslate);
-        btn_add_to_favourite= (Button)view.findViewById(R.id.add_to_favourite);
-        trans               = (TextView)view.findViewById(R.id.translate);
-        def                 = (TextView)view.findViewById(R.id.def);
-        pos                 = (TextView)view.findViewById(R.id.pos);
-        input_field         = (EditText)view.findViewById(R.id.inputfield);
-        rv                  = (RecyclerView)view.findViewById(R.id.recycler_view);
-        manager             = new LinearLayoutManager(getActivity());
+        error_container = (LinearLayout) view.findViewById(R.id.error_container);
+        btn_translate_from = (Button) view.findViewById(R.id.translate_from);
+        btn_switch_language = (Button) view.findViewById(R.id.switch_language);
+        btn_translate_to = (Button) view.findViewById(R.id.translate_to);
+        translate = (Button) view.findViewById(R.id.btn_tanslate);
+        btn_add_to_favourite = (Button) view.findViewById(R.id.add_to_favourite);
+        trans = (TextView) view.findViewById(R.id.translate);
+        def = (TextView) view.findViewById(R.id.def);
+        pos = (TextView) view.findViewById(R.id.pos);
+        error_mesage = (TextView) view.findViewById(R.id.error_message);
+        input_field = (EditText) view.findViewById(R.id.inputfield);
+        rv = (RecyclerView) view.findViewById(R.id.recycler_view);
+        manager = new LinearLayoutManager(getActivity());
         btn_translate_from.setOnClickListener(this);
         btn_switch_language.setOnClickListener(this);
         btn_translate_to.setOnClickListener(this);
 
+        error_container.setVisibility(View.GONE);
 
-        trans.setText(db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_QUERY,"")));
-        def.setText(sharedPreferences.getString(Constants.LAST_QUERY,""));
-        pos.setText(db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_QUERY,"")));
+        trans.setText(db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, "")));
+        def.setText(sharedPreferences.getString(Constants.LAST_ACTION, ""));
+        pos.setText(db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_ACTION, "")));
 
         rv.setLayoutManager(manager);
         adapter = new LookupAdapter(
                 getActivity(),
-                db.getTop_Row_by_word(sharedPreferences.getString(Constants.LAST_QUERY,"")),
-                db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_QUERY,""))
+                db.getTop_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, "")),
+                db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, ""))
         );
         adapter.notifyDataSetChanged();
         rv.setAdapter(adapter);
 
-            getLanguages();
-            getDirections();
+        if(adapter.getItemCount() != 0){
+            btn_add_to_favourite.setVisibility(View.VISIBLE);
+        }
+        else{
+            btn_add_to_favourite.setVisibility(View.INVISIBLE);
+        }
+
+        getLanguages();
+        getDirections();
 
         translate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    text = input_field.getText().toString();
-                    Translate(text);
+                text = input_field.getText().toString();
+                Translate(text);
             }
         });
         btn_add_to_favourite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (db.ExistInFavouriteTable(sharedPreferences.getString(Constants.LAST_QUERY,""),LanguageQuery()) == 0) {
-                Favourite favourite = new Favourite(
-                        sharedPreferences.getString(Constants.LAST_QUERY,""),
-                        db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_QUERY,"")),
-                        LanguageQuery()
-                );
-                db.insertFavourite(favourite);
+                if (db.ExistInFavouriteTable(sharedPreferences.getString(Constants.LAST_ACTION, ""), LanguageQuery()) == 0) {
+                    Favourite favourite = new Favourite(
+                            sharedPreferences.getString(Constants.LAST_ACTION, ""),
+                            db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, "")),
+                            LanguageQuery()
+                    );
+                    db.insertFavourite(favourite);
 
-                FavouriteDetail favourite_detail = new FavouriteDetail(
-                        sharedPreferences.getString(Constants.LAST_QUERY,""),
-                        db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_QUERY,"")),
-                        db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_QUERY,"")),
-                        db.getTop_Row_by_word(sharedPreferences.getString(Constants.LAST_QUERY,"")),
-                        db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_QUERY,"")),
-                        LanguageQuery()
-                );
-                db.insertFavouriteDetail(favourite_detail);
-                Toast.makeText(getActivityContex(), "Added to favourite :)", Toast.LENGTH_LONG).show();
-            }
-            else {
-                    Toast.makeText(getActivity(), "Already in favourite :)", Toast.LENGTH_LONG).show();
+                    FavouriteDetail favourite_detail = new FavouriteDetail(
+                            sharedPreferences.getString(Constants.LAST_ACTION, ""),
+                            db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, "")),
+                            db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_ACTION, "")),
+                            db.getTop_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, "")),
+                            db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, "")),
+                            LanguageQuery()
+                    );
+                    db.insertFavouriteDetail(favourite_detail);
+                    Toast.makeText(getActivityContex(), "Добавлено в избранное :)", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getActivity(), "Уже есть в избранном :)", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -144,7 +153,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     @Override
     public void onClick(View view) {
         DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.translate_from:
                 goToLanguages(R.id.translate_from);
                 break;
@@ -153,102 +162,138 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                 break;
             case R.id.switch_language:
                 swapLanguages();
-                btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM,"")));
-                btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO,"")));
+                btn_translate_from.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_FROM, "")));
+                btn_translate_to.setText(db.getValueByKey(sharedPreferences.getString(Constants.TRANSLATE_TO, "")));
                 break;
         }
     }
-//====================================================== MAIN TRANSLATE AND LOOKUP METHOD ==================================================================================
+
+    //====================================================== MAIN TRANSLATE AND LOOKUP METHOD ==================================================================================
     private void Translate(String text) {
+        error_container.setVisibility(View.GONE);
         final DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
+
         Retrofit retrofitTR = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_URL)  //  Translate
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        Retrofit retrofitLK = new Retrofit.Builder()
-                .baseUrl(Constants.BASE_URL2)   // Lookup
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
         TranslateService tr_service = retrofitTR.create(TranslateService.class); // Translate sevice
-        LookupService lookup_service = retrofitLK.create(LookupService.class); //   Lookup sevice
-
         final Call<TranslaterResponse> CallToTranslate = tr_service.makeTranslateRequest(getTranslateParams());
-        final Call<LookupResponse> CallToLookup = lookup_service.makeLookupRequest(getLookupParams());
-
-        CallToLookup.enqueue(new Callback<LookupResponse>() { // Lookup call
-            @Override
-            public void onResponse(Call<LookupResponse> call, Response<LookupResponse> response) {
-                LookupResponse lookup_response = response.body();  // Lookup response
-                if (db.TranslateDirectionExistInDictionaryDirectionsTable(LanguageQuery())) {
-                        rv.setVisibility(View.VISIBLE);
-                        def.setVisibility(View.VISIBLE);
-                        pos.setVisibility(View.VISIBLE);
-                        def.setText(lookup_response.getDef().get(0).getText());
-                        pos.setText(lookup_response.getDef().get(0).getPos());
-                        rv.setLayoutManager(manager); // View in Recycler View
-                        adapter = new LookupAdapter(
-                                getActivity(),
-                                lookup_response.RV_top_items_row(),
-                                lookup_response.RV_bot_items_row());
-                        rv.setAdapter(adapter);
-                        //________________________
-                        // Definition + Synonyms  |
-                        // Meaning                | <-- Single Recycler View Item
-                        //________________________|
-                        if (db.ExistInHistoryTable(lookup_response.getDef().get(0).getText(), LanguageQuery()) == 1) {
-                            Lookup lookup = new Lookup(
-                                    lookup_response.getDef().get(0).getText(),
-                                    lookup_response.getDef().get(0).getPos(),
-                                    lookup_response.RV_top_items_row(),
-                                    lookup_response.RV_bot_items_row()
-                            );
-                            db.insertLookup(lookup);
-                        }
-                    }
-                else {
-                    rv.setVisibility(View.INVISIBLE);
-                    def.setVisibility(View.INVISIBLE);
-                    pos.setVisibility(View.INVISIBLE);
-                    Toast.makeText(getActivity(), "Wrong Translate Direction in Lookup", Toast.LENGTH_LONG).show();
-                    }
-                }
-            @Override
-            public void onFailure(Call<LookupResponse> call, Throwable t) {
-            }
-        });
 
         CallToTranslate.enqueue(new Callback<TranslaterResponse>() {   // Translate call
             @Override
             public void onResponse(Call<TranslaterResponse> call, Response<TranslaterResponse> response) {
-                if (db.TranslateDirectionExistInDirectionsTable(LanguageQuery())) {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(Constants.LAST_QUERY, input_field.getText().toString());
-                    editor.apply();
-
-                    TranslaterResponse translate_response = response.body(); // Translate response
-
-                        History history = new History(
-                                sharedPreferences.getString(Constants.LAST_QUERY,""),
-                                translate_response.getText().get(0),
-                                translate_response.getLang()
-                        );
-                        db.insertHistory(history);
-                        trans.setVisibility(View.VISIBLE);
-                        trans.setText(translate_response.getText().toString().substring(1, translate_response.getText().toString().length()-1));
-//                        trans.setText("Sorry! We can't translate this text :(");
-//                        Toast.makeText(getActivity(), "Sorry! We can't translate this text :(", Toast.LENGTH_LONG).show();
-                }
-                else {
-                    trans.setText("Error:( Please check for existing this translate direction !");
-                    Toast.makeText(getActivity(), "Wrong Translate Direction in translate", Toast.LENGTH_LONG).show();
+                TranslaterResponse translate_response = response.body();
+                switch (translate_response.getCode()) {
+                    case 401:
+                        viewErrorMessage("Неправильный API-ключ");
+                        break;
+                    case 402:
+                        viewErrorMessage("API-ключ заблокирован");
+                        break;
+                    case 404:
+                        viewErrorMessage("Превышено суточное ограничение на объем переведенного текста");
+                        break;
+                    case 413:
+                        viewErrorMessage("Превышен максимально допустимый размер текста");
+                        break;
+                    case 422:
+                        viewErrorMessage("Текст не может быть переведен");
+                        break;
+                    case 200:
+                        viewTranslate(translate_response);
+                        break;
+                    default:
+                        break;
                 }
             }
+
             @Override
             public void onFailure(Call<TranslaterResponse> call, Throwable t) {
             }
         });
+    }
+
+    private void viewTranslate(final TranslaterResponse translate_response) {
+        if (db.TranslateDirectionExistInDirectionsTable(LanguageQuery())) {
+            if (translate_response.getCode() == 200) {
+                btn_add_to_favourite.setVisibility(View.VISIBLE);
+                trans.setVisibility(View.VISIBLE);
+                trans.setText(translate_response.getText().toString().substring(1, translate_response.getText().toString().length() - 1));
+
+                Retrofit retrofitLK = new Retrofit.Builder()
+                        .baseUrl(Constants.BASE_URL2)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+
+                LookupService lookup_service = retrofitLK.create(LookupService.class);
+
+                final Call<LookupResponse> CallToLookup = lookup_service.makeLookupRequest(getLookupParams());
+
+                CallToLookup.enqueue(new Callback<LookupResponse>() {
+                    @Override
+                    public void onResponse(Call<LookupResponse> call, Response<LookupResponse> response) {
+                        LookupResponse lookup_response = response.body();
+                        if (db.TranslateDirectionExistInDictionaryDirectionsTable(LanguageQuery())) {
+                            rv.setVisibility(View.VISIBLE);
+                            def.setVisibility(View.VISIBLE);
+                            pos.setVisibility(View.VISIBLE);
+
+                            if (lookup_response.getDef().size() == 0) {
+                                rv.setVisibility(View.INVISIBLE);
+                                def.setVisibility(View.INVISIBLE);
+                                pos.setVisibility(View.INVISIBLE);
+                                viewErrorMessage("Слово написано неправильно");
+                                return;
+                            }
+
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString(Constants.LAST_ACTION, input_field.getText().toString());
+                            editor.apply();
+
+                            def.setText(lookup_response.getDef().get(0).getText());
+                            pos.setText(lookup_response.getDef().get(0).getPos());
+                            rv.setLayoutManager(manager); // View in Recycler View
+                            adapter = new LookupAdapter(
+                                    getActivity(),
+                                    lookup_response.RV_top_items_row(),
+                                    lookup_response.RV_bot_items_row());
+                            rv.setAdapter(adapter);
+                            //________________________
+                            // Definition + Synonyms  |
+                            // Meaning                | <-- Single Recycler View Item
+                            //________________________|
+                            if (db.ExistInHistoryTable(lookup_response.getDef().get(0).getText(), LanguageQuery()) == 0) {
+                                Lookup lookup = new Lookup(
+                                        lookup_response.getDef().get(0).getText(),
+                                        lookup_response.getDef().get(0).getPos(),
+                                        lookup_response.RV_top_items_row(),
+                                        lookup_response.RV_bot_items_row()
+                                );
+                                db.insertLookup(lookup);
+
+                                History history = new History(
+                                        sharedPreferences.getString(Constants.LAST_ACTION, ""),
+                                        translate_response.getText().get(0),
+                                        translate_response.getLang()
+                                );
+                                db.insertHistory(history);
+                            }
+                        } else {
+                            viewErrorMessage("Заданное направление перевода не поддерживается Яндекс.Словарем");
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<LookupResponse> call, Throwable t) {
+                        viewErrorMessage("Перевода не существует");
+                    }
+                });
+
+            }
+        } else {
+            viewErrorMessage("Заданное направление перевода не поддерживается Яндекс.Переводчиом");
+        }
     }
 
     private void getLanguages() {
@@ -313,7 +358,16 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         }
     }
 //=========================================================================================================================================================
-
+    private void viewErrorMessage(String text){
+        rv.setVisibility(View.INVISIBLE);
+        def.setVisibility(View.INVISIBLE);
+        pos.setVisibility(View.INVISIBLE);
+        trans.setText("");
+        def.setText("");
+        btn_add_to_favourite.setVisibility(View.INVISIBLE);
+        error_container.setVisibility(View.VISIBLE);
+        error_mesage.setText(text);
+    }
     private String LanguageQuery(){
         String from = sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
         String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
@@ -372,11 +426,11 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
         if(id == R.id.translate_from){
-            editor.putInt(Constants.BTN_CLICKED,1);
+            editor.putInt(Constants.ID_OF_ACTION,1);
             editor.apply();
         }
         if(id == R.id.translate_to) {
-            editor.putInt(Constants.BTN_CLICKED,2);
+            editor.putInt(Constants.ID_OF_ACTION,2);
             editor.apply();
         }
         SelectTranslateLanguageFragment fragment = new SelectTranslateLanguageFragment();

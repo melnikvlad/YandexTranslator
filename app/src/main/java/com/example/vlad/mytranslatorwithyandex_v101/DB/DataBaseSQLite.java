@@ -95,7 +95,6 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
         db.execSQL(LanguagesTable);
         db.execSQL(DirectionsTable);
         db.execSQL(DirectionsDictionaryTable);
@@ -168,6 +167,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
 
         db.close();
     }
+
     public void insertFavourite(Favourite favourite) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
@@ -179,6 +179,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
 
         db.close();
     }
+
     public void insertFavouriteDetail(FavouriteDetail favourite) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
@@ -194,6 +195,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         db.close();
     }
+
     public void insertLookup(Lookup lookup) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
@@ -241,6 +243,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         Directions directions = new Directions(dirList);
         return directions;
     }
+
     public Directions getDictionaryDirectionsFromDirectionsTable() {
         List<String> dirList = new ArrayList<String>();
         String selectQuery = "SELECT DIRECTIONS FROM " + DIRS_DICTIONARY_TABLE_NAME;
@@ -269,6 +272,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return list;
     }
+
     public List<String> getTranslatesFromHistoryTable() {
         List<String> list = new ArrayList<String>();
 
@@ -281,9 +285,9 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
                 list.add(cursor.getString(0));
             } while (cursor.moveToPrevious());
         }
-
         return list;
     }
+
     public String getTransateFromHistoryTable(String word) {
         String trans = null;
         SQLiteDatabase db = this.getWritableDatabase();
@@ -295,6 +299,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return trans;
     }
+
     public List<String> getDirsFromHistoryTable() {
         List<String> list = new ArrayList<String>();
         String selectQuery = "SELECT DIRECTION FROM " + HISTORY_TABLE_NAME;
@@ -335,6 +340,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return list;
     }
+
     public String getTranslateFromFavouriteTable(String word) {
         String trans = null;
         SQLiteDatabase db = this.getWritableDatabase();
@@ -346,6 +352,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return trans;
     }
+
     public List<String> getDirsFromFavouriteTable() {
         List<String> list = new ArrayList<String>();
         String selectQuery = "SELECT DIRECTION FROM " + FAVOURITE_TABLE_NAME;
@@ -359,18 +366,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return list;
     }
-    public String getDirFromFavouriteTable(String word) {
-        String pos = null;
 
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT DIRECTION FROM " + FAVOURITE_TABLE_NAME + " WHERE WORD=?", new String[]{word + ""});
-        if (cursor.moveToLast()) {
-            do {
-                pos = cursor.getString(0);
-            } while (cursor.moveToPrevious());
-        }
-        return pos;
-    }
     public String getPosFromDetailTable(String word) {
         String pos = null;
         SQLiteDatabase db = this.getWritableDatabase();
@@ -382,6 +378,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return pos;
     }
+
     public List<String> getTop_RowFromDetailTable(String word) {
         List<String> list = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
@@ -470,19 +467,6 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return pos;
     }
-    public List<String> getDef(){
-        List<String> list = new ArrayList<>();
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT DISTINCT DEF FROM " + LOOKUP_TABLE_NAME ,null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                list.add(cursor.getString(0));
-            } while (cursor.moveToNext());
-        }
-        return list;
-    }
-
 
     //=======================================================================================================================
     //=============================================== COUNT =================================================================
@@ -499,16 +483,6 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
     public int getDictoinaryDirectionsCount() {
         int count = 0;
         String countQuery = "SELECT  * FROM " + DIRS_DICTIONARY_TABLE_NAME;
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(countQuery, null);
-        count = cursor.getCount();
-        cursor.close();
-        return count;
-    }
-
-    public int getHistoryCount() {
-        int count = 0;
-        String countQuery = "SELECT  * FROM " + HISTORY_TABLE_NAME;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(countQuery, null);
         count = cursor.getCount();
@@ -571,6 +545,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return exist;
     }
+
     public boolean TranslateDirectionExistInDictionaryDirectionsTable(String direction){ // Example en-hi exist in directions or not
         boolean exist = false;
         SQLiteDatabase db = this.getWritableDatabase();
@@ -583,6 +558,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         }
         return exist;
     }
+
     //========================================================DELETE=========================================================
     //=======================================================================================================================
     public void deleteLanguageAndDirectionTables() {
@@ -597,12 +573,6 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
     }
 
     public void deleteHistory() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(HISTORY_TABLE_NAME,null,null);
-        db.execSQL("DELETE FROM "+ HISTORY_TABLE_NAME);
-        db.close();
-    }
-    public void deleteHistoryItem(String word) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(HISTORY_TABLE_NAME,null,null);
         db.execSQL("DELETE FROM "+ HISTORY_TABLE_NAME);

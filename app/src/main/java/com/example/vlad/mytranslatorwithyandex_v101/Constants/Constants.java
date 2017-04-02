@@ -10,12 +10,10 @@ public class Constants {
     public static final String DEFAULT_LANGUAGE_INTERFACE = "def";//
     public static final String TRANSLATE_FROM ="from";
     public static final String TRANSLATE_TO ="to";
-    public static final String BTN_CLICKED = "btn";
+    public static final String ID_OF_ACTION = "btn";
     public static final String TAG = "TAG";
     public static final int MAIN_SCR_TAB_COUNT = 3;
     public static final int SECOND_SCR_TAB_COUNT = 2;
-    public static final String LAST_QUERY = "request";
+    public static final String LAST_ACTION = "request";
     public static final String LAST_FAVOURITE = "favourite";
-
-
 }

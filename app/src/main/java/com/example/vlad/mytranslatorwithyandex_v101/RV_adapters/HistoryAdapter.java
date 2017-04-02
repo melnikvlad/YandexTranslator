@@ -15,7 +15,6 @@ import android.widget.TextView;
 
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.Fragments.MainScreen;
-import com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.First.TranslateFragment;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 
@@ -67,7 +66,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             public void onClick(View view) {
                 SharedPreferences prefs = getPreferences();
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putString(Constants.LAST_QUERY,holder.word.getText().toString());
+                editor.putString(Constants.LAST_ACTION,holder.word.getText().toString());
                 editor.apply();
                 goToMainScreenFragment();
             }

@@ -63,7 +63,7 @@ public class getLangsAdapter extends RecyclerView.Adapter<getLangsAdapter.Langua
                 DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
                 SharedPreferences prefs = getPreferences();
                 SharedPreferences.Editor editor = prefs.edit();
-                int id = prefs.getInt(Constants.BTN_CLICKED,-1);
+                int id = prefs.getInt(Constants.ID_OF_ACTION,-1);
                 switch (id){
                     case 1:
                         editor.putString(Constants.TRANSLATE_FROM,db.getKeyByValue(holder.lang.getText().toString()));

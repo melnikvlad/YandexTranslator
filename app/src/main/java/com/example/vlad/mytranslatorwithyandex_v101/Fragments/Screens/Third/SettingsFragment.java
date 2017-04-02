@@ -22,7 +22,6 @@ import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Directions;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Translator_getLangsResponse.getLangsResponse;
 import com.example.vlad.mytranslatorwithyandex_v101.Models.getLangs.Languages;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
-import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.getDirsAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -182,7 +181,7 @@ public class SettingsFragment extends Fragment {
 
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putInt(Constants.BTN_CLICKED,4);
+        editor.putInt(Constants.ID_OF_ACTION,4);
         editor.apply();
         LanguagesFragment fragment = new LanguagesFragment();
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
