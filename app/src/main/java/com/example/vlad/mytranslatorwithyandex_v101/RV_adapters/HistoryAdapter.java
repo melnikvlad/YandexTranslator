@@ -35,7 +35,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         this.dirsData = dirsData;
         this.filterList = new ArrayList<>();
         this.filterList.addAll(this.wordsData);
-
     }
 
     public static class HistoryViewHolder extends RecyclerView.ViewHolder {

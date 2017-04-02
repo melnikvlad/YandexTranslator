@@ -360,10 +360,10 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
 //=========================================================================================================================================================
     private void viewErrorMessage(String text){
         rv.setVisibility(View.INVISIBLE);
-        def.setVisibility(View.INVISIBLE);
+        trans.setVisibility(View.INVISIBLE);
         pos.setVisibility(View.INVISIBLE);
-        trans.setText("");
-        def.setText("");
+
+        def.setText(input_field.getText().toString());
         btn_add_to_favourite.setVisibility(View.INVISIBLE);
         error_container.setVisibility(View.VISIBLE);
         error_mesage.setText(text);
