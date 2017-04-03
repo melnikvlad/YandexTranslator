@@ -31,14 +31,15 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
+/*
+    View Translator.API supported directions in RecyclerView
+ */
 public class DirectionsFragment_Translator extends Fragment {
     private SearchView searchView;
     private RecyclerView rv;
     private getDirsAdapter adapter;
     private RecyclerView.LayoutManager manager;
     private DataBaseSQLite db;
-    private SharedPreferences sharedPreferences;
     private Button back_to_settings;
     @Nullable
     @Override
@@ -49,8 +50,6 @@ public class DirectionsFragment_Translator extends Fragment {
         rv                  = (RecyclerView)view.findViewById(R.id.recycler_view_setings);
         manager             = new LinearLayoutManager(getActivity());
         db                  = new DataBaseSQLite(getActivity().getApplicationContext());
-
-        getDirections();
 
         setupSearchView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -70,19 +69,21 @@ public class DirectionsFragment_Translator extends Fragment {
                 goToSettingsFragment();
             }
         });
+
+        getDirections(); // Load all directions, supported by Translator.API with Retrofit
+
         return view;
     }
 
     private void getDirections() {
-        sharedPreferences = getPreferences();
-        if((db.getLanguagesCount()== 0)) {
-            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
+        if((db.getLanguagesCount()== 0)) {// if we hadn't load anything, when do it by Retrofit call, else load data in rv from SQLite DB
+            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
-            LanguagesService lang_service = retrofitLNG.create(LanguagesService.class); // Translate service
+            LanguagesService lang_service = retrofitLNG.create(LanguagesService.class);
 
-            final Call<getLangsResponse> CallToLanguages = lang_service.getLangs(getLanguagesParams());
+            final Call<getLangsResponse> CallToLanguages = lang_service.getLangs(getParams());
 
             CallToLanguages.enqueue(new Callback<getLangsResponse>() {
                 @Override
@@ -91,10 +92,15 @@ public class DirectionsFragment_Translator extends Fragment {
                     Directions directions = new Directions(
                         serverResponse.getResponseDirs(serverResponse)
                     );
+
                     db.insertDirections(directions);
 
-                    rv.setLayoutManager(manager); // View in Recycler View
-                    adapter = new getDirsAdapter(getActivity(),db.RewriteDirsToValuesInDirectionsTable(db.getDirectionsFromDirectionsTable().getDirs()));
+                    rv.setLayoutManager(manager);
+                    adapter = new getDirsAdapter(
+                            getActivity(),
+                            db.RewriteDirsToValuesInDirectionsTable(db.getDirectionsFromDirectionsTable().getDirs())
+                            // get Directions keys from db,transform them and view their values,they are also in db
+                    );
                     rv.setAdapter(adapter);
                 }
 
@@ -103,9 +109,13 @@ public class DirectionsFragment_Translator extends Fragment {
                 }
             });
         }
-       else { // if DataBaseSQLite DB is already exists and got all info --> view it in RV immediately
-           rv.setLayoutManager(manager); // View in Recycler View
-           adapter = new getDirsAdapter(getActivity(),db.RewriteDirsToValuesInDirectionsTable(db.getDirectionsFromDirectionsTable().getDirs()));
+       else {
+           rv.setLayoutManager(manager);
+           adapter = new getDirsAdapter(
+                   getActivity(),
+                   db.RewriteDirsToValuesInDirectionsTable(db.getDirectionsFromDirectionsTable().getDirs())
+                   // get Directions keys from db,transform them and view their values,they are also in db
+           );
            rv.setAdapter(adapter);
        }
     }
@@ -116,7 +126,7 @@ public class DirectionsFragment_Translator extends Fragment {
         searchView.setQueryHint("Поиск напралений");
     }
 
-    private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
+    private Map<String, String> getParams(){ // Params for Translate retrofit request
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_LOOKUP);
         return params;
@@ -127,15 +137,5 @@ public class DirectionsFragment_Translator extends Fragment {
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.directions_frame,fragment);
         ft.commit();
-    }
-
-    private Context getActivityContex(){
-        Context applicationContext = MainActivity.getContextOfApplication();
-        return applicationContext;
-    }
-
-    private SharedPreferences getPreferences(){
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
-        return prefs;
     }
 }

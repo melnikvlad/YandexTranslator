@@ -15,7 +15,9 @@ import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.FavouriteAdapter;
-
+/*
+    In this fragment we only setup Recycler view to view data from "Favourite" table,as you can see it from adapter
+ */
 public class FavouriteFragment extends Fragment {
     private SearchView searchView;
     private RecyclerView rv;
@@ -31,16 +33,6 @@ public class FavouriteFragment extends Fragment {
         manager             = new LinearLayoutManager(getActivity());
         db                  = new DataBaseSQLite(getActivity().getApplicationContext());
 
-        rv.setLayoutManager(manager);
-        adapter = new FavouriteAdapter(
-                getActivity(),
-                db.getWordsFromFavouriteTable(),
-                db.getTranslatesFromFavouriteTable(),
-                db.getDirsFromFavouriteTable()
-        );
-        adapter.notifyDataSetChanged();
-        rv.setAdapter(adapter);
-
         setupSearchView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -53,6 +45,17 @@ public class FavouriteFragment extends Fragment {
                 return true;
             }
         });
+
+        rv.setLayoutManager(manager);
+        adapter = new FavouriteAdapter(
+                getActivity(),
+                db.getWordsFromFavouriteTable(),
+                db.getTranslatesFromFavouriteTable(),
+                db.getDirsFromFavouriteTable()
+        );
+        adapter.notifyDataSetChanged();
+        rv.setAdapter(adapter);
+
         return view;
     }
     public void setupSearchView() {

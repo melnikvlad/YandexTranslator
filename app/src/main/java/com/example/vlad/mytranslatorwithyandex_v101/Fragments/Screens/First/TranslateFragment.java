@@ -52,8 +52,9 @@ import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-
-
+/*
+    This is main fragment, where we do translate things
+*/
 public class TranslateFragment extends Fragment implements View.OnClickListener {
     private LinearLayout error_container;
     private TextView trans, def, pos, error_mesage;
@@ -69,28 +70,38 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        db = new DataBaseSQLite(getActivityContex());
-        sharedPreferences = getPreferences();
         View view = inflater.inflate(R.layout.translate_fragment, container, false);
-        error_container = (LinearLayout) view.findViewById(R.id.error_container);
-        btn_translate_from = (Button) view.findViewById(R.id.translate_from);
+        error_container     = (LinearLayout) view.findViewById(R.id.error_container);
+        btn_translate_from  = (Button) view.findViewById(R.id.translate_from);
         btn_switch_language = (Button) view.findViewById(R.id.switch_language);
-        btn_translate_to = (Button) view.findViewById(R.id.translate_to);
-        translate = (Button) view.findViewById(R.id.btn_tanslate);
-        btn_add_to_favourite = (Button) view.findViewById(R.id.add_to_favourite);
-        trans = (TextView) view.findViewById(R.id.translate);
-        def = (TextView) view.findViewById(R.id.def);
-        pos = (TextView) view.findViewById(R.id.pos);
-        error_mesage = (TextView) view.findViewById(R.id.error_message);
-        input_field = (EditText) view.findViewById(R.id.inputfield);
-        rv = (RecyclerView) view.findViewById(R.id.recycler_view);
-        manager = new LinearLayoutManager(getActivity());
+        btn_translate_to    = (Button) view.findViewById(R.id.translate_to);
+        translate           = (Button) view.findViewById(R.id.btn_tanslate);
+        btn_add_to_favourite= (Button) view.findViewById(R.id.add_to_favourite);
+        trans               = (TextView) view.findViewById(R.id.translate);
+        def                 = (TextView) view.findViewById(R.id.def);
+        pos                 = (TextView) view.findViewById(R.id.pos);
+        error_mesage        = (TextView) view.findViewById(R.id.error_message);
+        input_field         = (EditText) view.findViewById(R.id.inputfield);
+        rv                  = (RecyclerView) view.findViewById(R.id.recycler_view);
+        manager             = new LinearLayoutManager(getActivity());
+        db                  = new DataBaseSQLite(getActivityContex());
+        sharedPreferences   = getPreferences();
+
         btn_translate_from.setOnClickListener(this);
         btn_switch_language.setOnClickListener(this);
         btn_translate_to.setOnClickListener(this);
-
+        /*
+            Before start translate update languages and directions in the language of selected ui
+        */
+        getLanguages();
+        getDirections();
+        /*
+            When the screen created we need to load data, which represent our last translate action
+            So first of all, make invisible "add to favourite" button, cuz nothing to add at the beginning, while the space is out off info
+            Then put in TextViews and RecyclerView data comparatively our last translate action
+            In other words, view detail of last history item from SQLite
+        */
         error_container.setVisibility(View.GONE);
-
         trans.setText(db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, "")));
         def.setText(sharedPreferences.getString(Constants.LAST_ACTION, ""));
         pos.setText(db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_ACTION, "")));
@@ -103,17 +114,18 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         );
         adapter.notifyDataSetChanged();
         rv.setAdapter(adapter);
-
+        /*
+            if data loaded( if something is in history), we make "add button" visible and invisible if it not
+        */
         if(adapter.getItemCount() != 0){
             btn_add_to_favourite.setVisibility(View.VISIBLE);
         }
         else{
             btn_add_to_favourite.setVisibility(View.INVISIBLE);
         }
-
-        getLanguages();
-        getDirections();
-
+        /*
+              CLick and do to server translate request
+        */
         translate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -121,6 +133,11 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                 Translate(text);
             }
         });
+        /*
+            "Add button" click --> if in Favourite table of SQLite DB not exist row with similar word and translate direction
+            we can add this in Favourite table and add the details in FavouriteDetail table
+            else we CAN'T
+        */
         btn_add_to_favourite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -142,14 +159,18 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                     );
                     db.insertFavouriteDetail(favourite_detail);
                     Toast.makeText(getActivityContex(), "Добавлено в избранное :)", Toast.LENGTH_LONG).show();
-                } else {
+                }
+                else {
                     Toast.makeText(getActivity(), "Уже есть в избранном :)", Toast.LENGTH_LONG).show();
                 }
             }
         });
+
         return view;
     }
-
+    /*
+        Change FROM_TO languages and swap them with each other
+    */
     @Override
     public void onClick(View view) {
         DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
@@ -170,18 +191,25 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
 
     //====================================================== MAIN TRANSLATE AND LOOKUP METHOD ==================================================================================
     private void Translate(String text) {
+        /*
+            When we clicked on "translate button", need to set invisible "error container"
+            Make Retrofit call to server
+            Get Response data and check the response code
+            if it 200 then view translate and lookup data
+            else view error message and nothing more
+        */
         error_container.setVisibility(View.GONE);
-        final DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
+        db = new DataBaseSQLite(getActivityContex());
 
-        Retrofit retrofitTR = new Retrofit.Builder()
-                .baseUrl(Constants.BASE_URL)  //  Translate
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        TranslateService tr_service = retrofitTR.create(TranslateService.class); // Translate sevice
+        TranslateService tr_service = retrofit.create(TranslateService.class);
         final Call<TranslaterResponse> CallToTranslate = tr_service.makeTranslateRequest(getTranslateParams());
 
-        CallToTranslate.enqueue(new Callback<TranslaterResponse>() {   // Translate call
+        CallToTranslate.enqueue(new Callback<TranslaterResponse>() {
             @Override
             public void onResponse(Call<TranslaterResponse> call, Response<TranslaterResponse> response) {
                 TranslaterResponse translate_response = response.body();
@@ -216,19 +244,28 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
     }
 
     private void viewTranslate(final TranslaterResponse translate_response) {
+        /*
+            As we know there is 2 supported lists of translate directions
+            So if our direction exist in Directions table we will go on and view translate stuff
+        */
         if (db.TranslateDirectionExistInDirectionsTable(LanguageQuery())) {
-            if (translate_response.getCode() == 200) {
+            /*
+                set "add button" visible, cuz now we have things to add in favourite
+                set trans visible,cuz we can make it invisible if there is error in translate and view only error container
+                ser trans response translation and transform it,cuz we get it from server in square braces
+            */
                 btn_add_to_favourite.setVisibility(View.VISIBLE);
                 trans.setVisibility(View.VISIBLE);
                 trans.setText(translate_response.getText().toString().substring(1, translate_response.getText().toString().length() - 1));
-
-                Retrofit retrofitLK = new Retrofit.Builder()
+                /*
+                    Make Retrofit call for Lookup
+                */
+                Retrofit retrofit = new Retrofit.Builder()
                         .baseUrl(Constants.BASE_URL2)
                         .addConverterFactory(GsonConverterFactory.create())
                         .build();
 
-                LookupService lookup_service = retrofitLK.create(LookupService.class);
-
+                LookupService lookup_service = retrofit.create(LookupService.class);
                 final Call<LookupResponse> CallToLookup = lookup_service.makeLookupRequest(getLookupParams());
 
                 CallToLookup.enqueue(new Callback<LookupResponse>() {
@@ -236,10 +273,16 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                     public void onResponse(Call<LookupResponse> call, Response<LookupResponse> response) {
                         LookupResponse lookup_response = response.body();
                         if (db.TranslateDirectionExistInDictionaryDirectionsTable(LanguageQuery())) {
+                            /*
+                                So if our direction exist in Dictionary Directions table we will go on and make Views visible
+                            */
                             rv.setVisibility(View.VISIBLE);
                             def.setVisibility(View.VISIBLE);
                             pos.setVisibility(View.VISIBLE);
-
+                            /*
+                                But if there are some errors: typo or word doen't exist in dictionary, we can have empty response object
+                                So to prevent app crashes -- > check for response object size nad if it is empty ---> view error and break process
+                             */
                             if (lookup_response.getDef().size() == 0) {
                                 rv.setVisibility(View.INVISIBLE);
                                 def.setVisibility(View.INVISIBLE);
@@ -247,7 +290,9 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                                 viewErrorMessage("Слово написано неправильно");
                                 return;
                             }
-
+                            /*
+                                if everything with Lookup is OK --> update in Prefs LAST_ACTION word--->view in Recycler view
+                            */
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putString(Constants.LAST_ACTION, input_field.getText().toString());
                             editor.apply();
@@ -260,10 +305,14 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                                     lookup_response.RV_top_items_row(),
                                     lookup_response.RV_bot_items_row());
                             rv.setAdapter(adapter);
-                            //________________________
-                            // Definition + Synonyms  |
-                            // Meaning                | <-- Single Recycler View Item
-                            //________________________|
+                            /*________________________
+                             | Definition + Synonyms  |
+                             | Meaning                | <-- Single Recycler View Item
+                             |________________________|                                        */
+                            /*
+                                if Lookup response word + dir doen't exist in History table,
+                                when we can save this in Lookup table and add it in History table
+                            */
                             if (db.ExistInHistoryTable(lookup_response.getDef().get(0).getText(), LanguageQuery()) == 0) {
                                 Lookup lookup = new Lookup(
                                         lookup_response.getDef().get(0).getText(),
@@ -271,16 +320,16 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                                         lookup_response.RV_top_items_row(),
                                         lookup_response.RV_bot_items_row()
                                 );
-                                db.insertLookup(lookup);
-
                                 History history = new History(
                                         sharedPreferences.getString(Constants.LAST_ACTION, ""),
                                         translate_response.getText().get(0),
                                         translate_response.getLang()
                                 );
+                                db.insertLookup(lookup);
                                 db.insertHistory(history);
                             }
-                        } else {
+                        }
+                        else {
                             viewErrorMessage("Заданное направление перевода не поддерживается Яндекс.Словарем");
                         }
                     }
@@ -289,10 +338,9 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                         viewErrorMessage("Перевода не существует");
                     }
                 });
-
-            }
-        } else {
-            viewErrorMessage("Заданное направление перевода не поддерживается Яндекс.Переводчиом");
+        }
+        else {
+            viewErrorMessage("Заданное направление перевода не поддерживается Яндекс.Переводчиком");
         }
     }
 
@@ -301,10 +349,10 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         sharedPreferences = getPreferences();
         if (db.getLanguagesCount() == 0 ){
             Retrofit retrofitLNG = new Retrofit.Builder()
-                    .baseUrl(Constants.BASE_URL)  //  Translate
+                    .baseUrl(Constants.BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
-            LanguagesService lang_service = retrofitLNG.create(LanguagesService.class); // Translate service
+            LanguagesService lang_service = retrofitLNG.create(LanguagesService.class);
             final Call<getLangsResponse> CallToLanguages = lang_service.getLangs(getLanguagesParams());
             CallToLanguages.enqueue(new Callback<getLangsResponse>() {
                 @Override
@@ -336,7 +384,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         sharedPreferences = getPreferences();
         if((db.getDictoinaryDirectionsCount()== 0)) {
             Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(Constants.BASE_URL2)  //  Translate
+                    .baseUrl(Constants.BASE_URL2)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
@@ -358,7 +406,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         }
     }
 //=========================================================================================================================================================
-    private void viewErrorMessage(String text){
+    private void viewErrorMessage(String text){ // view error container + word
         rv.setVisibility(View.INVISIBLE);
         trans.setVisibility(View.INVISIBLE);
         pos.setVisibility(View.INVISIBLE);
@@ -368,7 +416,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         error_container.setVisibility(View.VISIBLE);
         error_mesage.setText(text);
     }
-    private String LanguageQuery(){
+    private String LanguageQuery(){ // transform FROM-TO values to keys for retrofit request
         String from = sharedPreferences.getString(Constants.TRANSLATE_FROM,"");
         String to = sharedPreferences.getString(Constants.TRANSLATE_TO,"");
         return from+"-"+to;
@@ -415,6 +463,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         params.put("ui", ui);
         return params;
     }
+
     private Map<String, String> getParams(){
         String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_UI,"");
         Map<String, String> params = new HashMap<>();
@@ -422,6 +471,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         params.put("ui", ui);
         return params;
     }
+
     private void goToLanguages(int id){
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
@@ -439,7 +489,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         ft.commit();
     }
 
-    private void  swapLanguages(){
+    private void  swapLanguages(){ // swap FROM-TO
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
         String temp ="";

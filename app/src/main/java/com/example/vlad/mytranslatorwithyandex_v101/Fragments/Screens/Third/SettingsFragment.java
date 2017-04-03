@@ -41,9 +41,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class SettingsFragment extends Fragment {
-    TextView selected_lang;
-    Button select_lang, view_list_of_dirs, getView_list_of_dirs2;
-    SharedPreferences sharedPreferences;
+    private TextView selected_lang;
+    private Button select_lang, view_list_of_dirs, getView_list_of_dirs2;
+    private SharedPreferences sharedPreferences;
+    private DataBaseSQLite db;
 
     @Nullable
     @Override
@@ -56,6 +57,7 @@ public class SettingsFragment extends Fragment {
         getView_list_of_dirs2 = (Button) view.findViewById(R.id.view_list_of_dirs2);
         selected_lang = (TextView) view.findViewById(R.id.selected_lang);
 
+        db = new DataBaseSQLite(getActivityContex());
         getLanguages();
         getDirections();
 
@@ -79,17 +81,22 @@ public class SettingsFragment extends Fragment {
         });
         return view;
     }
-
+    /*
+        Get languages and directions supported by Translator.API
+        it will response with lists of keys, values, directions.For ex.: en English and en-ru
+        insert keys and values in "Languages" table
+        insert directions in "Directions" table
+        and set selected language in TextView
+     */
     private void getLanguages() {
-        final DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
         sharedPreferences = getPreferences();
+        if (db.getLanguagesCount() == 0) {// if we hadn't load anything, when do it by Retrofit call, else load data in rv from SQLite DB
 
-        if (db.getLanguagesCount() == 0) {
-            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)  //  Translate
+            Retrofit retrofitLNG = new Retrofit.Builder().baseUrl(Constants.BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
-            LanguagesService lang_service = retrofitLNG.create(LanguagesService.class); // Translate service
+            LanguagesService lang_service = retrofitLNG.create(LanguagesService.class);
             final Call<getLangsResponse> CallToLanguages = lang_service.getLangs(getLanguagesParams());
 
             CallToLanguages.enqueue(new Callback<getLangsResponse>() {
@@ -101,12 +108,14 @@ public class SettingsFragment extends Fragment {
                             serverResponse.getResponseKeys(serverResponse),
                             serverResponse.getResponseValues(serverResponse)
                     );
-                    db.insertLanguages(languages);
-
                     Directions directions = new Directions(serverResponse.getResponseDirs(serverResponse));
+
+                    db.insertLanguages(languages);
                     db.insertDirections(directions);
 
                     selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_INTERFACE, "")));
+                    // in adapter we selected language and put its key in DEFAULT_LANGUAGE_INTERFACE
+                    // db.getValueByKey(text) - will transform our key response to normal value ex: en to English
                 }
 
                 @Override
@@ -114,19 +123,21 @@ public class SettingsFragment extends Fragment {
                 }
             });
         } else {
-            selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_UI, "")));
+            selected_lang.setText(db.getValueByKey(sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_INTERFACE, "")));
         }
     }
-
+    /*
+      Get directions supported by Dictionary.API
+      Directions from Translator.API are different, so we want to save another dirs in new table "DirectionsDictionary"
+    */
     private void getDirections() {
-        final DataBaseSQLite db = new DataBaseSQLite(getActivityContex());
         sharedPreferences = getPreferences();
-        if ((db.getDictoinaryDirectionsCount() == 0)) {
-            Retrofit retrofit = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)  //  Translate
+        if ((db.getDictoinaryDirectionsCount() == 0)) {// if we hadn't load directions, when do it by Retrofit call, else load data in rv from SQLite DB
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
-            DirectionsService service = retrofit.create(DirectionsService.class); // Translate service
+            DirectionsService service = retrofit.create(DirectionsService.class);
             final Call<List<String>> CallForDirs = service.getDirs(getParams());
 
             CallForDirs.enqueue(new Callback<List<String>>() {
@@ -134,27 +145,26 @@ public class SettingsFragment extends Fragment {
                 public void onResponse(Call<List<String>> call, Response<List<String>> response) {
                     List<String> serverResponse = response.body();
                     Directions directions = new Directions(
-                            ArrayToList(serverResponse)
+                            ArrayToList(serverResponse) // Transform server response array to List
                     );
                     db.insertDictionaryDirections(directions);
                 }
 
                 @Override
                 public void onFailure(Call<List<String>> call, Throwable t) {
-                    Log.d(Constants.TAG, t.getMessage().toString());
                 }
             });
         }
-        }
+    }
 
-    private Map<String, String> getLanguagesParams(){ // Params for Translate retrofit request
+    private Map<String, String> getLanguagesParams(){ // Params for Translate Retrofit request
         String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_UI,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_TRANSLATE);
         params.put("ui", ui);
         return params;
     }
-    private Map<String, String> getParams(){ // Params for Translate retrofit request
+    private Map<String, String> getParams(){ // Params for Translate Retrofit request
         String ui = sharedPreferences.getString(Constants.DEFAULT_LANGUAGE_UI,"");
         Map<String, String> params = new HashMap<>();
         params.put("key", Constants.API_KEY_LOOKUP);
@@ -178,7 +188,8 @@ public class SettingsFragment extends Fragment {
     }
 
     private void goToLanguagesFragment(){
-
+        // clicked button id --> this id will used in getLangsAdapter
+        // only to controol, what action was done
         SharedPreferences prefs = getPreferences();
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(Constants.ID_OF_ACTION,4);
@@ -190,14 +201,12 @@ public class SettingsFragment extends Fragment {
     }
 
     private void goToDirectionsFragment(){
-
         DirectionsFragment_Translator fragment = new DirectionsFragment_Translator();
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.defaultlang_fragment_frame,fragment);
         ft.commit();
     }
     private void goToDirectionsFragment2(){
-
         DirectionsFragment_Dictionary fragment = new DirectionsFragment_Dictionary();
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.defaultlang_fragment_frame,fragment);
@@ -211,5 +220,4 @@ public class SettingsFragment extends Fragment {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
         return prefs;
     }
-
 }

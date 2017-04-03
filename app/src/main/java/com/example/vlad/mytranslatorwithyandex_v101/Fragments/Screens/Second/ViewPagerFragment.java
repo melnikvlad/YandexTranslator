@@ -14,13 +14,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
-
+    /*
+       This is fragment with inner view pager,
+       it is located in 2nd tab of main view pager nad consists of 2 fragments: History and Favourite
+    */
 public class ViewPagerFragment extends Fragment {
     ViewPager viewPager;
     TabLayout tabLayout;
     HistoryFragment historyFragment;
     FavouriteFragment favouriteFragment;
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

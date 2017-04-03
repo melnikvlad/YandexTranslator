@@ -19,7 +19,9 @@ import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.MainActivity;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.LookupAdapter;
-
+/*
+    In this fragment we can see detail data of selected word in favoirite
+ */
 public class FavouriteDetailFragment  extends Fragment{
     private TextView trans,def,pos;
     private Button back_to_favourite;
@@ -40,12 +42,23 @@ public class FavouriteDetailFragment  extends Fragment{
         manager             = new LinearLayoutManager(getActivity());
         db                  = new DataBaseSQLite(getActivity().getApplicationContext());
         sharedPreferences   = getPreferences();
-        db = new DataBaseSQLite(getActivityContex());
 
+        back_to_favourite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToFavourite();
+            }
+        });
+        // put in TextView translate = selected LAST_FAVOURITE word translate in "Favourite" table
         trans.setText(db.getTranslateFromFavouriteTable(sharedPreferences.getString(Constants.LAST_FAVOURITE,"")));
+        // view this LAST_FAVOURITE word
         def.setText(sharedPreferences.getString(Constants.LAST_FAVOURITE,""));
+        // put in TextView pos = selected LAST_FAVOURITE word pos in "FavouriteDetail" table
         pos.setText(db.getPosFromDetailTable(sharedPreferences.getString(Constants.LAST_FAVOURITE,"")));
 
+        // In this table we also keep more meanings and translates of LAST_FAVOURITE word, which presents in all of them concatenation
+        // for ex: top --> translate1 + translate2+ ...+translateN
+        //         bot --> mean1+...+meanN
         rv.setLayoutManager(manager);
         adapter = new LookupAdapter(
                 getActivity(),
@@ -54,14 +67,10 @@ public class FavouriteDetailFragment  extends Fragment{
         );
         adapter.notifyDataSetChanged();
         rv.setAdapter(adapter);
-        back_to_favourite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                goToFavourite();
-            }
-        });
+
         return view;
     }
+
     private Context getActivityContex(){
         Context applicationContext = MainActivity.getContextOfApplication();
         return applicationContext;

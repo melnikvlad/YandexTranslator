@@ -15,8 +15,9 @@ import com.example.vlad.mytranslatorwithyandex_v101.Constants.Constants;
 import com.example.vlad.mytranslatorwithyandex_v101.DB.DataBaseSQLite;
 import com.example.vlad.mytranslatorwithyandex_v101.R;
 import com.example.vlad.mytranslatorwithyandex_v101.RV_adapters.HistoryAdapter;
-
-
+/*
+    In this fragment we only setup Recycler view to view data from "History" table,as you can see it from adapter
+ */
 public class HistoryFragment extends Fragment {
     private SearchView searchView;
     private RecyclerView rv;
@@ -33,16 +34,6 @@ public class HistoryFragment extends Fragment {
         manager    = new LinearLayoutManager(getActivity());
         db         = new DataBaseSQLite(getActivity().getApplicationContext());
 
-        rv.setLayoutManager(manager);
-        adapter = new HistoryAdapter(
-                getActivity(),
-                db.getWordsFromHistoryTable(),
-                db.getTranslatesFromHistoryTable(),
-                db.getDirsFromHistoryTable()
-        );
-        adapter.notifyDataSetChanged();
-        rv.setAdapter(adapter);
-
         setupSearchView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -55,8 +46,20 @@ public class HistoryFragment extends Fragment {
                 return true;
             }
         });
+
+        rv.setLayoutManager(manager);
+        adapter = new HistoryAdapter(
+                getActivity(),
+                db.getWordsFromHistoryTable(),
+                db.getTranslatesFromHistoryTable(),
+                db.getDirsFromHistoryTable()
+        );
+        adapter.notifyDataSetChanged();
+        rv.setAdapter(adapter);
+
         return view;
     }
+
     public void setupSearchView() {
         searchView.setIconifiedByDefault(false);
         searchView.setSubmitButtonEnabled(false);

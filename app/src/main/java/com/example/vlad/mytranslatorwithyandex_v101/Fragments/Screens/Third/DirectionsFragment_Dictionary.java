@@ -40,13 +40,15 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/*
+    The same steps as in the Directions Fragment for Translator, but we work with another table - directions supported by Dictionary.API
+ */
 public class DirectionsFragment_Dictionary extends Fragment{
     private SearchView searchView;
     private RecyclerView rv;
     private getDirsAdapter adapter;
     private RecyclerView.LayoutManager manager;
     private DataBaseSQLite db;
-    private SharedPreferences sharedPreferences;
     private Button back_to_settings;
     @Nullable
     @Override
@@ -82,13 +84,13 @@ public class DirectionsFragment_Dictionary extends Fragment{
     }
 
     private void getDirections() {
-        sharedPreferences = getPreferences();
+
             if((db.getDictoinaryDirectionsCount()== 0)) {
-            Retrofit retrofit = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)  //  Translate
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(Constants.BASE_URL2)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
-            DirectionsService service = retrofit.create(DirectionsService.class); // Translate service
+            DirectionsService service = retrofit.create(DirectionsService.class);
             final Call<List<String>> CallForDirs = service.getDirs(getParams());
 
             CallForDirs.enqueue(new Callback<List<String>>() {
@@ -108,12 +110,11 @@ public class DirectionsFragment_Dictionary extends Fragment{
                 }
                 @Override
                 public void onFailure(Call<List<String>> call, Throwable t) {
-                    Log.d(Constants.TAG,t.getMessage().toString());
                 }
             });
         }
         else {
-            rv.setLayoutManager(manager); // View in Recycler View
+            rv.setLayoutManager(manager);
             adapter = new getDirsAdapter(getActivity(),
                     db.RewriteDirsToValuesInDirectionsTable(db.getDictionaryDirectionsFromDirectionsTable().getDirs())
             );
@@ -154,15 +155,5 @@ public class DirectionsFragment_Dictionary extends Fragment{
         android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.directions_frame,fragment);
         ft.commit();
-    }
-
-    private Context getActivityContex(){
-        Context applicationContext = MainActivity.getContextOfApplication();
-        return applicationContext;
-    }
-
-    private SharedPreferences getPreferences(){
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
-        return prefs;
     }
 }

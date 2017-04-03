@@ -30,18 +30,24 @@ public class MainActivity extends FragmentActivity {
         return contextOfApplication;
     }
 
+    /*
+        First of all we check for existing data in our SQLite,
+        if we haven't  load necessary default language,
+        then setup some constants and go to LanguagesFragment, where we should select language,
+        else  go to the app main screen
+    */
     private void initView(){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         SharedPreferences.Editor editor = prefs.edit();
         Fragment fragment;
         if(db.getLanguagesCount() == 0){
             fragment = new LanguagesFragment();
-            editor.putInt(Constants.ID_OF_ACTION,3);
+            editor.putInt(Constants.ID_OF_ACTION,3); // Some id for a several buttons
             editor.putString(Constants.DEFAULT_LANGUAGE_UI,"en");
             editor.putString(Constants.DEFAULT_LANGUAGE_INTERFACE,"en");
             editor.putString(Constants.TRANSLATE_FROM,"en");
             editor.putString(Constants.TRANSLATE_TO,"ru");
-            editor.putString(Constants.LAST_ACTION,"");
+            editor.putString(Constants.LAST_ACTION,""); // remember what word we worked with last time
             editor.apply();
         }
         else {

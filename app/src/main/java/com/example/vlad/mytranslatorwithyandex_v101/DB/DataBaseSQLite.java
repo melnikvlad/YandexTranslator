@@ -571,7 +571,6 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         db.execSQL("DELETE FROM "+ DIRS_DICTIONARY_TABLE_NAME);
         db.close();
     }
-
     public void deleteHistory() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(HISTORY_TABLE_NAME,null,null);

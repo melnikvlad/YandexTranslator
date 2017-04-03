@@ -26,20 +26,17 @@ public class LookupAdapter extends RecyclerView.Adapter<LookupAdapter.ViewHolder
             num = (TextView)view.findViewById(R.id.num);
         }
     }
-
     public LookupAdapter(Context mContext, List<String> mTopData,List<String> mBotData) {
         this.mContext = mContext;
         this.mTopData = mTopData;
         this.mBotData = mBotData;
     }
-
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(mContext).inflate(R.layout.cardview,parent,false);
         ViewHolder viewHolder = new ViewHolder(v);
         return viewHolder;
     }
-
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
@@ -51,9 +48,7 @@ public class LookupAdapter extends RecyclerView.Adapter<LookupAdapter.ViewHolder
             holder.bot.setText(mBotData.get(position).toString());
         }
         holder.num.setText(""+(position+1));
-
     }
-
     @Override
     public int getItemCount() {
         return mTopData.size();
