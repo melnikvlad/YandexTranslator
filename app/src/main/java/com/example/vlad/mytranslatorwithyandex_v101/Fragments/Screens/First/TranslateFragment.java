@@ -287,7 +287,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                                 rv.setVisibility(View.INVISIBLE);
                                 def.setVisibility(View.INVISIBLE);
                                 pos.setVisibility(View.INVISIBLE);
-                                viewErrorMessage("Слово написано неправильно");
+                                viewErrorMessage("Нет дополнительного перевода");
                                 return;
                             }
                             /*
@@ -408,7 +408,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
 //=========================================================================================================================================================
     private void viewErrorMessage(String text){ // view error container + word
         rv.setVisibility(View.INVISIBLE);
-        trans.setVisibility(View.INVISIBLE);
+        //trans.setVisibility(View.INVISIBLE);
         pos.setVisibility(View.INVISIBLE);
 
         def.setText(input_field.getText().toString());
