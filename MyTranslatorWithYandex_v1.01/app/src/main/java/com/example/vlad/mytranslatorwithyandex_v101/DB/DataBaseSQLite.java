@@ -577,4 +577,18 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         db.execSQL("DELETE FROM "+ HISTORY_TABLE_NAME);
         db.close();
     }
+
+    public void deleteHistoryItem (String word,String translate,String dir) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(HISTORY_TABLE_NAME, HISTORY_WORD+" = '"+word+"' AND "+HISTORY_TRANSLATE+" = '"+translate+"' AND "+HISTORY_TRANSLATE_LANG+" = '"+dir+"'", null);
+        db.close();
+    }
+//    public void deleteHistoryItem (int id) {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        //db.delete(HISTORY_TABLE_NAME, ID+" = '"+position+"'", null);
+//        //db.delete(HISTORY_TABLE_NAME, ID + "="+position,null);
+//        db.delete(HISTORY_TABLE_NAME, ID +  "='" + id+"'", null);
+//        db.close();
+//    }
+
 }

@@ -310,7 +310,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                              | Meaning                | <-- Single Recycler View Item
                              |________________________|                                        */
                             /*
-                                if Lookup response word + dir doen't exist in History table,
+                                if Lookup response word + dir doesn't exist in History table,
                                 when we can save this in Lookup table and add it in History table
                             */
                             if (db.ExistInHistoryTable(lookup_response.getDef().get(0).getText(), LanguageQuery()) == 0) {

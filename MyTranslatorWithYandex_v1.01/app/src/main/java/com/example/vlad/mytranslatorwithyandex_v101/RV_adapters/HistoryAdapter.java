@@ -78,6 +78,22 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         return (null != filterList ? filterList.size() : 0);
     }
 
+    public void deleteItem(int position) {
+        filterList.remove(position);
+        translatesData.remove(position);
+        dirsData.remove(position);
+        notifyItemRemoved(position);
+        notifyDataSetChanged();
+    }
+    public String getWord(int position){
+        return filterList.get(position);
+    }
+    public String getTrans(int position){
+        return translatesData.get(position);
+    }
+    public String getDirs(int position){
+        return dirsData.get(position);
+    }
     // Do Search...
     public void filter(final String text) {
         filterList.clear();
