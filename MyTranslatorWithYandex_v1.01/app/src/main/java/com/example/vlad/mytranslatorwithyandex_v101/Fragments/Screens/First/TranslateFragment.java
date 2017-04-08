@@ -325,7 +325,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                                         translate_response.getText().get(0),
                                         translate_response.getLang()
                                 );
-                                db.insertLookup(lookup);
+                                db.insertLookup(lookup,LanguageQuery());
                                 db.insertHistory(history);
                             }
                         }

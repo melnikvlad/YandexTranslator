@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataBaseSQLite extends SQLiteOpenHelper{
-    public final static int DB_VERSION = 11;
+    public final static int DB_VERSION = 12;
     public final static String DB_NAME = "YandexTranslatorDB";
 
     public final static String LANG_TABLE_NAME = "Languages";
@@ -41,6 +41,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
     public final static String HISTORY_TRANSLATE = "TRANSLATE";
     public final static String HISTORY_TRANSLATE_LANG = "DIRECTION";
 
+    public final static String LOOKUP_DIR = "DIR";
     public final static String LOOKUP_DEF = "DEF";
     public final static String LOOKUP_POS = "POS";
     public final static String LOOKUP_TOP_ROW = "TOP";
@@ -84,6 +85,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
             FAVOURITE_TRANSLATE_DIRECTION +" TEXT"+")";
     String LookupTable = "CREATE TABLE "+ LOOKUP_TABLE_NAME +
             " ("+ ID +" INTEGER PRIMARY KEY, " +
+            LOOKUP_DIR +" TEXT," +
             LOOKUP_DEF +" TEXT," +
             LOOKUP_POS+" TEXT," +
             LOOKUP_TOP_ROW+" TEXT," +
@@ -196,11 +198,12 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         db.close();
     }
 
-    public void insertLookup(Lookup lookup) {
+    public void insertLookup(Lookup lookup,String dir) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
         for(int i = 0;i<lookup.getTop_row().size();i++){
+            contentValues.put(LOOKUP_DIR, dir);
             contentValues.put(LOOKUP_DEF, lookup.getDef());
             contentValues.put(LOOKUP_POS, lookup.getPos());
             contentValues.put(LOOKUP_TOP_ROW, lookup.getTop_row().get(i));
@@ -583,12 +586,11 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         db.delete(HISTORY_TABLE_NAME, HISTORY_WORD+" = '"+word+"' AND "+HISTORY_TRANSLATE+" = '"+translate+"' AND "+HISTORY_TRANSLATE_LANG+" = '"+dir+"'", null);
         db.close();
     }
-//    public void deleteHistoryItem (int id) {
-//        SQLiteDatabase db = this.getWritableDatabase();
-//        //db.delete(HISTORY_TABLE_NAME, ID+" = '"+position+"'", null);
-//        //db.delete(HISTORY_TABLE_NAME, ID + "="+position,null);
-//        db.delete(HISTORY_TABLE_NAME, ID +  "='" + id+"'", null);
-//        db.close();
-//    }
+
+    public void deleteLookupItem (String word,String dir) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(LOOKUP_TABLE_NAME, LOOKUP_DEF+" = '"+word+"' AND "+LOOKUP_DIR+" = '"+dir+"'", null);
+        db.close();
+    }
 
 }
