@@ -55,8 +55,8 @@ public class FavouriteFragment extends Fragment {
             }
         });
 
-        //Delete item from History Rv by swiping on item to the left and also delete this from SQLite db
-        //Also delete item info from Lookup table to avoid errors and clear cache from not existing in history additional translates
+        //Delete item from Favourite Rv by swiping on item to the left and also delete this from SQLite db
+        //Also delete item info from FavouriteDetail table to avoid errors and clear cache from not existing in history additional translates
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT){
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {

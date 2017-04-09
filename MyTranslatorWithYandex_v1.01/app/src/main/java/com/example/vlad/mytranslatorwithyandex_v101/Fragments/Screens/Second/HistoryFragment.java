@@ -77,6 +77,8 @@ public class HistoryFragment extends Fragment {
                     builder.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            //if we want to delete first word in adapter,which means,that this word was LAST_ACTION,
+                            // so make LAST_ACTION next word in RV and view this word in main screen
                             if(adapter.getWord(position).equals(sharedPreferences.getString(Constants.LAST_ACTION,"") )&& adapter.getDirs(position).equals(sharedPreferences.getString(Constants.LAST_ACTION_DIR,""))){
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString(Constants.LAST_ACTION,adapter.getWord(position+1));
