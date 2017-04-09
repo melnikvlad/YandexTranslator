@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataBaseSQLite extends SQLiteOpenHelper{
-    public final static int DB_VERSION = 12;
+    public final static int DB_VERSION = 13;
     public final static String DB_NAME = "YandexTranslatorDB";
 
     public final static String LANG_TABLE_NAME = "Languages";
@@ -87,8 +87,8 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
             " ("+ ID +" INTEGER PRIMARY KEY, " +
             LOOKUP_DIR +" TEXT," +
             LOOKUP_DEF +" TEXT," +
-            LOOKUP_POS+" TEXT," +
-            LOOKUP_TOP_ROW+" TEXT," +
+            LOOKUP_POS +" TEXT," +
+            LOOKUP_TOP_ROW +" TEXT," +
             LOOKUP_BOT_ROW +" TEXT"+")";
     //========================================================================================================================
     public DataBaseSQLite(Context context) {
@@ -178,7 +178,6 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         contentValues.put(FAVOURITE_TRANSLATE, favourite.getTranslate());
         contentValues.put(FAVOURITE_TRANSLATE_DIRECTION, favourite.getDirection());
         db.insert(FAVOURITE_TABLE_NAME,null ,contentValues);
-
         db.close();
     }
 
@@ -291,16 +290,16 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return list;
     }
 
-    public String getTransateFromHistoryTable(String word) {
-        String trans = null;
+    public String getTransateFromHistoryTable(String word,String dir) {
+        String pos = null;
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT TRANSLATE FROM " + HISTORY_TABLE_NAME + " WHERE WORD=?", new String[]{word + ""});
-        if (cursor.moveToLast()) {
+        Cursor cursor = db.rawQuery("SELECT TRANSLATE FROM " + HISTORY_TABLE_NAME + " WHERE WORD=? AND DIRECTION=?", new String[]{word + "",dir+""});
+        if (cursor.moveToFirst()) {
             do {
-                trans = cursor.getString(0);
-            } while (cursor.moveToPrevious());
+                pos = cursor.getString(0);
+            } while (cursor.moveToNext());
         }
-        return trans;
+        return pos;
     }
 
     public List<String> getDirsFromHistoryTable() {
@@ -344,10 +343,10 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return list;
     }
 
-    public String getTranslateFromFavouriteTable(String word) {
+    public String getTranslateFromFavouriteTable(String word,String dir) {
         String trans = null;
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT TRANSLATE FROM " + FAVOURITE_TABLE_NAME + " WHERE WORD=?", new String[]{word + ""});
+        Cursor cursor = db.rawQuery("SELECT TRANSLATE FROM " + FAVOURITE_TABLE_NAME + " WHERE WORD=? AND DIRECTION=?", new String[]{word + "",dir+""});
         if (cursor.moveToLast()) {
             do {
                 trans = cursor.getString(0);
@@ -370,10 +369,10 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return list;
     }
 
-    public String getPosFromDetailTable(String word) {
+    public String getPosFromDetailTable(String word,String dir) {
         String pos = null;
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT POS FROM " + FAVOURITE_DETAIL_TABLE_NAME + " WHERE WORD=?", new String[]{word + ""});
+        Cursor cursor = db.rawQuery("SELECT POS FROM " + FAVOURITE_DETAIL_TABLE_NAME + " WHERE WORD=? AND DIRECTION=?", new String[]{word + "",dir+""});
         if (cursor.moveToLast()) {
             do {
                 pos = cursor.getString(0);
@@ -382,10 +381,10 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return pos;
     }
 
-    public List<String> getTop_RowFromDetailTable(String word) {
+    public List<String> getTop_RowFromDetailTable(String word,String dir) {
         List<String> list = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT TOP FROM " + FAVOURITE_DETAIL_TABLE_NAME + " WHERE WORD=?", new String[]{word + ""});
+        Cursor cursor = db.rawQuery("SELECT TOP FROM " + FAVOURITE_DETAIL_TABLE_NAME + " WHERE WORD=? AND DIRECTION=?", new String[]{word + "",dir+""});
 
         if (cursor.moveToFirst()) {
             do {
@@ -395,10 +394,10 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return list;
     }
 
-    public List<String> getBot_RowFromDetailtable(String word) {
+    public List<String> getBot_RowFromDetailtable(String word,String dir) {
         List<String> list = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT BOT FROM " + FAVOURITE_DETAIL_TABLE_NAME + " WHERE WORD=?", new String[]{word + ""});
+        Cursor cursor = db.rawQuery("SELECT BOT FROM " + FAVOURITE_DETAIL_TABLE_NAME + " WHERE WORD=? AND DIRECTION=?", new String[]{word + "",dir+""});
 
         if (cursor.moveToFirst()) {
             do {
@@ -417,7 +416,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
                 count+=1;
             } while (cursor.moveToNext());
         }
-        Log.d(Constants.TAG,"EXIST :"+count);
+
         return count;
     }
 
@@ -433,44 +432,54 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         return count;
     }
 
-    public List<String> getTop_Row_by_word(String word){
+    public List<String> getTop_Row_by_word(String word,String dir){
         List<String> list = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + LOOKUP_TABLE_NAME + " WHERE DEF=?", new String[]{word + ""});
+        Cursor cursor = db.rawQuery("SELECT TOP FROM " + LOOKUP_TABLE_NAME + " WHERE DEF=? AND DIR=?", new String[]{word + "",dir+""});
         if (cursor.moveToFirst()) {
             do {
-               list.add(cursor.getString(3));
+               list.add(cursor.getString(0));
             } while (cursor.moveToNext());
         }
         return list;
     }
 
-    public List<String> getBot_Row_by_word(String word){
+    public List<String> getBot_Row_by_word(String word,String dir){
         List<String> list = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + LOOKUP_TABLE_NAME + " WHERE DEF=?", new String[]{word + ""});
+        Cursor cursor = db.rawQuery("SELECT BOT FROM " + LOOKUP_TABLE_NAME + " WHERE DEF=? AND DIR=?", new String[]{word + "",dir+""});
 
         if (cursor.moveToFirst()) {
             do {
-                list.add(cursor.getString(4));
+                list.add(cursor.getString(0));
             } while (cursor.moveToNext());
         }
         return list;
     }
 
-    public String getPosFromLookupTable(String word){
+    public String getPosFromLookupTable(String word,String dir){
         String pos = null;
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + LOOKUP_TABLE_NAME + " WHERE DEF=?", new String[]{word + ""});
-
+        Cursor cursor = db.rawQuery("SELECT POS FROM " + LOOKUP_TABLE_NAME + " WHERE DEF=? AND DIR=?", new String[]{word + "",dir+""});
         if (cursor.moveToFirst()) {
             do {
-                pos = cursor.getString(2);
+                pos = cursor.getString(0);
             } while (cursor.moveToNext());
         }
         return pos;
     }
 
+    public String getDefFromLookupTable(String word,String dir){
+        String pos = null;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT DEF FROM " + LOOKUP_TABLE_NAME + " WHERE DEF=? AND DIR=?", new String[]{word + "",dir+""});
+        if (cursor.moveToFirst()) {
+            do {
+                pos = cursor.getString(0);
+            } while (cursor.moveToNext());
+        }
+        return pos;
+    }
     //=======================================================================================================================
     //=============================================== COUNT =================================================================
     public int getLanguagesCount() {
@@ -574,6 +583,7 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         db.execSQL("DELETE FROM "+ DIRS_DICTIONARY_TABLE_NAME);
         db.close();
     }
+
     public void deleteHistory() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(HISTORY_TABLE_NAME,null,null);
@@ -590,6 +600,17 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
     public void deleteLookupItem (String word,String dir) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(LOOKUP_TABLE_NAME, LOOKUP_DEF+" = '"+word+"' AND "+LOOKUP_DIR+" = '"+dir+"'", null);
+        db.close();
+    }
+
+    public void deleteFavouriteItem (String word,String translate,String dir) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(FAVOURITE_TABLE_NAME, FAVOURITE_WORD+" = '"+word+"' AND "+FAVOURITE_TRANSLATE+" = '"+translate+"' AND "+FAVOURITE_TRANSLATE_DIRECTION+" = '"+dir+"'", null);
+        db.close();
+    }
+    public void deleteFavouriteDetailItem (String word,String dir) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(FAVOURITE_DETAIL_TABLE_NAME, FAVOURITE_WORD+" = '"+word+"' AND "+FAVOURITE_TRANSLATE_DIRECTION+" = '"+dir+"'", null);
         db.close();
     }
 

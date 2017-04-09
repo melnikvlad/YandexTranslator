@@ -29,15 +29,21 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.Favo
     private List<String> wordsData;
     private List<String> translatesData;
     private List<String> dirsData;
-    private List<String> filterList;
+    private List<String> filterWords;
+    private List<String> filterTrans;
+    private List<String> filterDirs;
 
     public FavouriteAdapter(Context mContext, List<String> wordsData, List<String> translatesData, List<String> dirsData) {
         this.mContext = mContext;
         this.wordsData = wordsData;
         this.translatesData = translatesData;
         this.dirsData = dirsData;
-        this.filterList = new ArrayList<>();
-        this.filterList.addAll(this.wordsData);
+        this.filterWords = new ArrayList<>();
+        this.filterTrans = new ArrayList<>();
+        this.filterDirs = new ArrayList<>();
+        this.filterWords.addAll(this.wordsData);
+        this.filterTrans.addAll(this.translatesData);
+        this.filterDirs.addAll(this.dirsData);
 
     }
 
@@ -61,15 +67,16 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.Favo
 
     @Override
     public void onBindViewHolder(final FavouriteViewHolder holder, int position) {
-        holder.word.setText(filterList.get(position));
-        holder.translate.setText(translatesData.get(position));
-        holder.lang.setText(dirsData.get(position));
+        holder.word.setText(filterWords.get(position));
+        holder.translate.setText(filterTrans.get(position));
+        holder.lang.setText(filterDirs.get(position));
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 SharedPreferences prefs = getPreferences();
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putString(Constants.LAST_FAVOURITE,holder.word.getText().toString());
+                editor.putString(Constants.LAST_FAVOURITE_DIR,holder.lang.getText().toString());
                 editor.apply();
                 goToFavouriteDetailFragment();
             }
@@ -79,15 +86,35 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.Favo
 
     @Override
     public int getItemCount() {
-        return (null != filterList ? filterList.size() : 0);
+        return (null != filterWords ? filterWords.size() : 0);
+    }
+    public void deleteItem(int position) {
+        filterWords.remove(position);
+        filterTrans.remove(position);
+        filterDirs.remove(position);
+        notifyItemRemoved(position);
+        notifyDataSetChanged();
+    }
+    public String getWord(int position){
+        return filterWords.get(position);
+    }
+    public String getTrans(int position){
+        return filterTrans.get(position);
+    }
+    public String getDirs(int position){
+        return filterDirs.get(position);
     }
 
     // Do Search...
     public void filter(final String text) {
-        filterList.clear();
+        filterWords.clear();
+        filterTrans.clear();
+        filterDirs.clear();
         // If there is no search value, then add all original list items to filter list
         if (TextUtils.isEmpty(text)) {
-            filterList.addAll(wordsData);
+            filterWords.addAll(wordsData);
+            filterTrans.addAll(translatesData);
+            filterDirs.addAll(dirsData);
         }
         else {
             // Iterate in the original List and add it to filter list...
@@ -95,7 +122,9 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.Favo
                 if (wordsData.get(i).toLowerCase().contains(text.toLowerCase()) ||
                         wordsData.get(i).toLowerCase().contains(text.toLowerCase())) {
                     // Adding Matched items
-                    filterList.add(wordsData.get(i));
+                    filterWords.add(wordsData.get(i));
+                    filterTrans.add(translatesData.get(i));
+                    filterDirs.add(dirsData.get(i));
                 }
             }
         }

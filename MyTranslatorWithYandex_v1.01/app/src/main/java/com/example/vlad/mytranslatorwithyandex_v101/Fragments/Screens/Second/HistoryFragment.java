@@ -1,7 +1,12 @@
 package com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.Second;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -31,6 +36,7 @@ public class HistoryFragment extends Fragment {
     private HistoryAdapter adapter;
     private RecyclerView.LayoutManager manager;
     private DataBaseSQLite db;
+    private SharedPreferences sharedPreferences;
 
     @Nullable
     @Override
@@ -40,6 +46,7 @@ public class HistoryFragment extends Fragment {
         rv         = (RecyclerView)view.findViewById(R.id.recycler);
         manager    = new LinearLayoutManager(getActivity());
         db         = new DataBaseSQLite(getActivity().getApplicationContext());
+        sharedPreferences = getPreferences();
 
         setupSearchView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -67,10 +74,15 @@ public class HistoryFragment extends Fragment {
                 if (direction == ItemTouchHelper.LEFT) {    //if swipe left
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity()); //alert for confirm to delete
                     builder.setMessage("Вы уверены,что хотите удалить слово из истории?");
-
                     builder.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            if(adapter.getWord(position).equals(sharedPreferences.getString(Constants.LAST_ACTION,"") )&& adapter.getDirs(position).equals(sharedPreferences.getString(Constants.LAST_ACTION_DIR,""))){
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString(Constants.LAST_ACTION,adapter.getWord(position+1));
+                                editor.putString(Constants.LAST_ACTION_DIR,adapter.getDirs(position+1));
+                                editor.apply();
+                            }
                             db.deleteHistoryItem(adapter.getWord(position),adapter.getTrans(position),adapter.getDirs(position));
                             db.deleteLookupItem(adapter.getWord(position),adapter.getDirs(position));
                             adapter.deleteItem(position);
@@ -108,5 +120,15 @@ public class HistoryFragment extends Fragment {
         searchView.setIconifiedByDefault(false);
         searchView.setSubmitButtonEnabled(false);
         searchView.setQueryHint("Найти в истории");
+    }
+
+    private Context getActivityContex(){
+        Context applicationContext = MainActivity.getContextOfApplication();
+        return applicationContext;
+    }
+
+    private SharedPreferences getPreferences(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivityContex());
+        return prefs;
     }
 }

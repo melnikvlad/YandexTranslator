@@ -14,6 +14,8 @@ public class Constants {
     public static final String TAG = "TAG";
     public static final int MAIN_SCR_TAB_COUNT = 3;
     public static final int SECOND_SCR_TAB_COUNT = 2;
-    public static final String LAST_ACTION = "request";
+    public static final String LAST_ACTION = "word";
+    public static final String LAST_ACTION_DIR = "dir";
     public static final String LAST_FAVOURITE = "favourite";
+    public static final String LAST_FAVOURITE_DIR = "favourite dir";
 }

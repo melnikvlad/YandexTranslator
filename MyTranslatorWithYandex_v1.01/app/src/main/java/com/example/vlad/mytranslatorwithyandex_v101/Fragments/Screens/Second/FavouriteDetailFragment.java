@@ -50,11 +50,11 @@ public class FavouriteDetailFragment  extends Fragment{
             }
         });
         // put in TextView translate = selected LAST_FAVOURITE word translate in "Favourite" table
-        trans.setText(db.getTranslateFromFavouriteTable(sharedPreferences.getString(Constants.LAST_FAVOURITE,"")));
+        trans.setText(db.getTranslateFromFavouriteTable(sharedPreferences.getString(Constants.LAST_FAVOURITE,""),sharedPreferences.getString(Constants.LAST_FAVOURITE_DIR,"")));
         // view this LAST_FAVOURITE word
         def.setText(sharedPreferences.getString(Constants.LAST_FAVOURITE,""));
         // put in TextView pos = selected LAST_FAVOURITE word pos in "FavouriteDetail" table
-        pos.setText(db.getPosFromDetailTable(sharedPreferences.getString(Constants.LAST_FAVOURITE,"")));
+        pos.setText(db.getPosFromDetailTable(sharedPreferences.getString(Constants.LAST_FAVOURITE,""),sharedPreferences.getString(Constants.LAST_FAVOURITE_DIR,"")));
 
         // In this table we also keep more meanings and translates of LAST_FAVOURITE word, which presents in all of them concatenation
         // for ex: top --> translate1 + translate2+ ...+translateN
@@ -62,8 +62,8 @@ public class FavouriteDetailFragment  extends Fragment{
         rv.setLayoutManager(manager);
         adapter = new LookupAdapter(
                 getActivity(),
-                db.getTop_RowFromDetailTable(sharedPreferences.getString(Constants.LAST_FAVOURITE,"")),
-                db.getBot_RowFromDetailtable(sharedPreferences.getString(Constants.LAST_FAVOURITE,""))
+                db.getTop_RowFromDetailTable(sharedPreferences.getString(Constants.LAST_FAVOURITE,""),sharedPreferences.getString(Constants.LAST_FAVOURITE_DIR,"")),
+                db.getBot_RowFromDetailtable(sharedPreferences.getString(Constants.LAST_FAVOURITE,""),sharedPreferences.getString(Constants.LAST_FAVOURITE_DIR,""))
         );
         adapter.notifyDataSetChanged();
         rv.setAdapter(adapter);

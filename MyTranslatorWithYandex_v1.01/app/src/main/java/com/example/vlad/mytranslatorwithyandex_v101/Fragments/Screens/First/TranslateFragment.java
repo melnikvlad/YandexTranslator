@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -101,16 +103,18 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             Then put in TextViews and RecyclerView data comparatively our last translate action
             In other words, view detail of last history item from SQLite
         */
+
+
         error_container.setVisibility(View.GONE);
-        trans.setText(db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, "")));
-        def.setText(sharedPreferences.getString(Constants.LAST_ACTION, ""));
-        pos.setText(db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_ACTION, "")));
+        trans.setText(db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")));
+        def.setText(db.getDefFromLookupTable(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")));
+        pos.setText(db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")));
 
         rv.setLayoutManager(manager);
         adapter = new LookupAdapter(
                 getActivity(),
-                db.getTop_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, "")),
-                db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, ""))
+                db.getTop_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")),
+                db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, ""))
         );
         adapter.notifyDataSetChanged();
         rv.setAdapter(adapter);
@@ -124,7 +128,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             btn_add_to_favourite.setVisibility(View.INVISIBLE);
         }
         /*
-              CLick and do to server translate request
+              Click and do server translate request
         */
         translate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -141,21 +145,21 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         btn_add_to_favourite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (db.ExistInFavouriteTable(sharedPreferences.getString(Constants.LAST_ACTION, ""), LanguageQuery()) == 0) {
+                if (db.ExistInFavouriteTable(sharedPreferences.getString(Constants.LAST_ACTION, ""), sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")) == 0) {
                     Favourite favourite = new Favourite(
                             sharedPreferences.getString(Constants.LAST_ACTION, ""),
-                            db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, "")),
-                            LanguageQuery()
+                            db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")),
+                            sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")
                     );
                     db.insertFavourite(favourite);
 
                     FavouriteDetail favourite_detail = new FavouriteDetail(
                             sharedPreferences.getString(Constants.LAST_ACTION, ""),
-                            db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, "")),
-                            db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_ACTION, "")),
-                            db.getTop_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, "")),
-                            db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, "")),
-                            LanguageQuery()
+                            db.getTransateFromHistoryTable(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")),
+                            db.getPosFromLookupTable(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")),
+                            db.getTop_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")),
+                            db.getBot_Row_by_word(sharedPreferences.getString(Constants.LAST_ACTION, ""),sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")),
+                            sharedPreferences.getString(Constants.LAST_ACTION_DIR, "")
                     );
                     db.insertFavouriteDetail(favourite_detail);
                     Toast.makeText(getActivityContex(), "Добавлено в избранное :)", Toast.LENGTH_LONG).show();
@@ -165,7 +169,6 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                 }
             }
         });
-
         return view;
     }
     /*
@@ -236,7 +239,6 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                         break;
                 }
             }
-
             @Override
             public void onFailure(Call<TranslaterResponse> call, Throwable t) {
             }
@@ -291,10 +293,11 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
                                 return;
                             }
                             /*
-                                if everything with Lookup is OK --> update in Prefs LAST_ACTION word--->view in Recycler view
+                                if everything with Lookup is OK --> update in Prefs LAST_ACTION,LAST_ACTION_DIR --->view in Recycler view
                             */
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putString(Constants.LAST_ACTION, input_field.getText().toString());
+                            editor.putString(Constants.LAST_ACTION_DIR,LanguageQuery());
                             editor.apply();
 
                             def.setText(lookup_response.getDef().get(0).getText());
@@ -408,7 +411,7 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
 //=========================================================================================================================================================
     private void viewErrorMessage(String text){ // view error container + word
         rv.setVisibility(View.INVISIBLE);
-        //trans.setVisibility(View.INVISIBLE);
+        trans.setVisibility(View.INVISIBLE);
         pos.setVisibility(View.INVISIBLE);
 
         def.setText(input_field.getText().toString());
@@ -477,17 +480,21 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
         SharedPreferences.Editor editor = prefs.edit();
         if(id == R.id.translate_from){
             editor.putInt(Constants.ID_OF_ACTION,1);
+            editor.putString(Constants.LAST_ACTION_DIR,LanguageQuery());
             editor.apply();
         }
         if(id == R.id.translate_to) {
             editor.putInt(Constants.ID_OF_ACTION,2);
+            editor.putString(Constants.LAST_ACTION_DIR,LanguageQuery());
             editor.apply();
         }
+
         SelectTranslateLanguageFragment fragment = new SelectTranslateLanguageFragment();
-        android.support.v4.app.FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.translate_fragment_frame,fragment);
-        ft.commit();
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.translate_fragment_frame,fragment).commit();
+        fragmentManager.beginTransaction().addToBackStack(null);
     }
+
 
     private void  swapLanguages(){ // swap FROM-TO
         SharedPreferences prefs = getPreferences();

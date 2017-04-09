@@ -48,6 +48,7 @@ public class MainActivity extends FragmentActivity {
             editor.putString(Constants.TRANSLATE_FROM,"en");
             editor.putString(Constants.TRANSLATE_TO,"ru");
             editor.putString(Constants.LAST_ACTION,""); // remember what word we worked with last time
+            editor.putString(Constants.LAST_ACTION_DIR,"en-ru"); // remember the translate direction last time we worked with
             editor.apply();
         }
         else {
