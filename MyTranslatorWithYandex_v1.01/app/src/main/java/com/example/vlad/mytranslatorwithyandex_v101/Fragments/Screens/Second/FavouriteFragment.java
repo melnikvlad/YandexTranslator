@@ -76,13 +76,13 @@ public class FavouriteFragment extends Fragment {
                             db.deleteFavouriteItem(adapter.getWord(position),adapter.getTrans(position),adapter.getDirs(position));
                             db.deleteFavouriteDetailItem(adapter.getWord(position),adapter.getDirs(position));
                             adapter.deleteItem(position);
-                            adapter.notifyItemRemoved(position-1);    //item removed from recylcerview
+                            adapter.notifyItemRemoved(position);    //item removed from recylcerview
                             return;
                         }
                     }).setNegativeButton("Отмена", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            adapter.notifyItemRemoved(position + 1);
+                            adapter.notifyItemRemoved(position);
                             adapter.notifyItemRangeChanged(position, adapter.getItemCount());
                             return;
                         }

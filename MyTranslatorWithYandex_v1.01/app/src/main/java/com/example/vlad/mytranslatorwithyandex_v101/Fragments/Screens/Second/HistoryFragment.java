@@ -78,8 +78,9 @@ public class HistoryFragment extends Fragment {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             //if we want to delete first word in adapter,which means,that this word was LAST_ACTION,
-                            // so make LAST_ACTION next word in RV and view this word in main screen
-                            if(adapter.getWord(position).equals(sharedPreferences.getString(Constants.LAST_ACTION,"") )&& adapter.getDirs(position).equals(sharedPreferences.getString(Constants.LAST_ACTION_DIR,""))){
+                            // so make LAST_ACTION next word,in RV and view this word in main screen,
+                            // but if it was the single word in the list,so view nothing
+                            if(db.getWordsFromHistoryTable().size() != 1 && adapter.getWord(position).equals(sharedPreferences.getString(Constants.LAST_ACTION,"") )&& adapter.getDirs(position).equals(sharedPreferences.getString(Constants.LAST_ACTION_DIR,""))){
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString(Constants.LAST_ACTION,adapter.getWord(position+1));
                                 editor.putString(Constants.LAST_ACTION_DIR,adapter.getDirs(position+1));
@@ -88,13 +89,13 @@ public class HistoryFragment extends Fragment {
                             db.deleteHistoryItem(adapter.getWord(position),adapter.getTrans(position),adapter.getDirs(position));
                             db.deleteLookupItem(adapter.getWord(position),adapter.getDirs(position));
                             adapter.deleteItem(position);
-                            adapter.notifyItemRemoved(position-1);    //item removed from recylcerview
+                            adapter.notifyItemRemoved(position);    //item removed from recylcerview
                             return;
                         }
                     }).setNegativeButton("Отмена", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            adapter.notifyItemRemoved(position + 1);
+                            adapter.notifyItemRemoved(position);
                             adapter.notifyItemRangeChanged(position, adapter.getItemCount());
                             return;
                         }
