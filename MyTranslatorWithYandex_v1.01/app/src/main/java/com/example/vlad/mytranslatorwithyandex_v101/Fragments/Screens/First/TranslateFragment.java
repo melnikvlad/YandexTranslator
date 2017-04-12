@@ -134,7 +134,9 @@ public class TranslateFragment extends Fragment implements View.OnClickListener 
             @Override
             public void onClick(View view) {
                 text = input_field.getText().toString();
-                Translate(text);
+                if(!text.isEmpty()){
+                    Translate(text);
+                }
             }
         });
         /*

@@ -2,6 +2,7 @@ package com.example.vlad.mytranslatorwithyandex_v101;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -23,6 +24,7 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         contextOfApplication = getApplicationContext();
         db = new DataBaseSQLite(getApplication().getApplicationContext());
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         initView();
     }
 

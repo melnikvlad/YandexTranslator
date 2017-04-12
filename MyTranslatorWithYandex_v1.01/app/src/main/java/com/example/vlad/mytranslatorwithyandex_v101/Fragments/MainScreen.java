@@ -1,6 +1,7 @@
 package com.example.vlad.mytranslatorwithyandex_v101.Fragments;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
