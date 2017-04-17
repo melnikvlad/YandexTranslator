@@ -590,6 +590,24 @@ public class DataBaseSQLite extends SQLiteOpenHelper{
         db.execSQL("DELETE FROM "+ HISTORY_TABLE_NAME);
         db.close();
     }
+    public void deleteLookup() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(LOOKUP_TABLE_NAME,null,null);
+        db.execSQL("DELETE FROM "+ LOOKUP_TABLE_NAME);
+        db.close();
+    }
+    public void deleteFavourite() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(FAVOURITE_TABLE_NAME,null,null);
+        db.execSQL("DELETE FROM "+ FAVOURITE_TABLE_NAME);
+        db.close();
+    }
+    public void deleteFavouriteDetail() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(FAVOURITE_DETAIL_TABLE_NAME,null,null);
+        db.execSQL("DELETE FROM "+ FAVOURITE_DETAIL_TABLE_NAME);
+        db.close();
+    }
 
     public void deleteHistoryItem (String word,String translate,String dir) {
         SQLiteDatabase db = this.getWritableDatabase();

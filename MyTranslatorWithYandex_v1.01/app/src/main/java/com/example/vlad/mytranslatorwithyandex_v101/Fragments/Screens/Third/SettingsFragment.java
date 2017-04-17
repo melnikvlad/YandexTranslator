@@ -1,11 +1,13 @@
 package com.example.vlad.mytranslatorwithyandex_v101.Fragments.Screens.Third;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +44,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SettingsFragment extends Fragment {
     private TextView selected_lang;
-    private Button select_lang, view_list_of_dirs, getView_list_of_dirs2;
+    private Button select_lang, view_list_of_dirs, getView_list_of_dirs2,clear_cache;
     private SharedPreferences sharedPreferences;
     private DataBaseSQLite db;
 
@@ -55,6 +57,7 @@ public class SettingsFragment extends Fragment {
         select_lang = (Button) view.findViewById(R.id.select_language);
         view_list_of_dirs = (Button) view.findViewById(R.id.view_list_of_dirs);
         getView_list_of_dirs2 = (Button) view.findViewById(R.id.view_list_of_dirs2);
+        clear_cache = (Button) view.findViewById(R.id.clear_cache);
         selected_lang = (TextView) view.findViewById(R.id.selected_lang);
 
         db = new DataBaseSQLite(getActivityContex());
@@ -77,6 +80,34 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 goToDirectionsFragment2();
+            }
+        });
+        clear_cache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity()); //alert for confirm to clear cache
+                    builder.setMessage("Вы уверены,что хотите удалить данные из истории и избранного?");
+                    builder.setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if(db.getWordsFromHistoryTable().size() != 0){
+                                db.deleteHistory();
+                                db.deleteLookup();
+                            }
+                            if(db.getWordsFromFavouriteTable().size() != 0){
+                                db.deleteFavourite();
+                                db.deleteFavouriteDetail();
+                            }
+                            return;
+                        }
+                    }).setNegativeButton("Отмена", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            return;
+                        }
+                    }).show();
             }
         });
         return view;

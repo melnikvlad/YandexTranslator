@@ -29,7 +29,7 @@ public class MainScreen extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final int[] icons = {R.drawable.prof2,R.drawable.hostory, R.drawable.set2};
+        final int[] icons = {R.drawable.main,R.drawable.hostory, R.drawable.set2};
         View view = inflater.inflate(R.layout.viewpager,container,false);
         tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         viewPager = (ViewPager) view.findViewById(R.id.main_tab_content);
