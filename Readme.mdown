@@ -11,7 +11,7 @@
   - Удаление элемента из истории или избранного смахиванием (swipe) с экрана
   - Очистка памяти от всех данных (история, избранное) 
 
- `Подробнее с заданием можно ознакомиться по [ссылке!](https://academy.yandex.ru/events/mobdev/msk-2017/#test)` 
+ `Подробнее с заданием можно ознакомиться по`[ссылке](https://academy.yandex.ru/events/mobdev/msk-2017/#test) 
  
 ### Ключевые инструменты:
 
@@ -26,44 +26,52 @@
 
 Когда пользователь впервые запускает приложение, ему предоставляется возможность выбора языка интерфейса, после чего он перенаправляется на главный экран.
 Если же это был не первый запуск, то на главном экране будет сразу выведена вся информация о его последнем просмотренном или переведенном слове.
-![Login.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/login.png)
+
+![LanguagesFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/language.png)
+
+![TranslateFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/empty_main.png)
 
 - ###  Главный экран
 
 После ввода слова в поле,после нажатия на клавишу "Перевести" будет выдана вся доступная из API Переводчик и API Словарь информация по данному запросу.
-В процессе перевода так же отслеживаются ошибки
+Каждый успешно пройденный перевод добавляется в базу данных и будет отображен в "История".
 
-![Home.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/main.png)
+![TranslateFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/translate.png)
 
-При нажатии на текст "Добавить фото" переходим на экран выбора фотографии из галереи телефона, которая потом добавится в горизонтальный Recycler View на главном экране.
+При нажатии на икоку возле перевода проиходит добавление информации по переводу в избранное, и отображено в "Избранное".
 
-![AddPhoto.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/add_photo.png)
+![TranslateFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/add_to_fav.png)
 
-При нажатии на текст "Мои тэги" переходим на экран управления тэгами, где мы можем увидеть список всех тэгов и там же добавить их.
+Одинаковые слова с таким же направлением перевода не будут автоматически добавлены в историю, и не будет возможно добавить в избранное.
+При нажатии на один из языков сверху (перевести из - на ) будет выдан спсок всех возможных языков перевода, предоставляемых API.
 
-![MyTags.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/tags.png)
+- ###  История и избранное
 
-При нажатии на тэг на главном экране, осуществляется вывод всех зарегистрированных пользователей с идентичным тэгом в своем профиле (В дальнейшем любое нажатие на карточку другого пользователя приведет на его профиль, где будут открыты функции добавления в друзья  и прочее)
+При нажатии на элемент списка истории вы будете перенапрвлены на главный экран, где автоматически отобразится вся информация из баз данных по выбраному слову.
 
-![UsersWithEqualTagsFragment.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/by_tag.png)
+![HistoryFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/history.png)
 
-- ###  Карты
+Аналогичный процесс происходит и с элементами списка избранное, только откроется дополнительное окно с подробной информацией по данному переводу.
 
-Проводится запрос на предоставление геоданных, и в случае согласия - автоматически показывается наше текущее положение согласно данным GPS. 
-Данные обновляются на сервере через определенный интервал времени.
-Можно проводить фильтрацию, поиск и отображение пользователей в пределах выбранной локации:страна, город или в радиусе n м/км от меня.
-Если пользователь не в этой области, то его иконка(аватарка) не будет отображена.
+![FavouriteFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/fav.png)
 
-![Map.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/in_circle.png)
-
-![Map.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/out_of_circle.png)
+![FavouriteDetailFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/detail_fav.png)
 
 - ###  Опции
 
-Возможность смены пароля и выхода из своего аккаунта.
+На этом экране предоставлена возможность изменения языка интерфейса, просмотр направлений переводов для Яндекс.Переводчик и Яндекс.Словарь и очистка временных данных (очистка базы данных SQLite).
 
-![Settings.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/settings.png)
+![SettingsFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/options.png)
 
-![Settings.java](https://github.com/melnikvlad/SocialMediaApp/blob/master/Readme/change_pswd.png)
+![DirectionsFragment_Dictionary.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/trans_dir.png)
 
+- ###  Очистка и удаление
+
+На экранах "История" и  "Избранное" есть возможность удаление какого-либо элемента смахиванием его с экрана, после чего появится окно подтверждения удаления.
+
+![HistoryFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/del_item.png)
+
+На экране "Опции" можно очистить кэш, нажав на кнопку очистки.
+
+![SettingsFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/clear_cache.png)
 
