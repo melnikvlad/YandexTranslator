@@ -38,7 +38,7 @@
 
 ![TranslateFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/translate.png)
 
-При нажатии на икоку возле перевода проиходит добавление информации по переводу в избранное, и отображено в "Избранное".
+При нажатии на иконку возле перевода происходит добавление информации по переводу в избранное, и отображено в "Избранное".
 
 ![TranslateFragment.java](https://github.com/melnikvlad/YandexTranslator/blob/master/Readme/add_to_fav.png)
 
